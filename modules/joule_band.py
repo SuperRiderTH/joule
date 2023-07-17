@@ -4,8 +4,6 @@
 import joule_data
 import math
 
-
-from joule import output_add
 from joule_system import *
 from joule_band_handlers import *
 

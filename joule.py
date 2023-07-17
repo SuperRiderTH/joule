@@ -37,23 +37,15 @@ gameDataFileType    = None
 # ========================================
 
 
-def main():
-
-    # Argument checking.
-    # ========================================
-
-    if len(sys.argv) < 2:
-        print ("Invalid number of arguments!")
-        return False
-    pass
-    
-    gameDataLocation    = sys.argv[1]
+def joule_run(gameDataLocation:str, gameSource:str):
 
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):
             joule_data.GameDataOutput.update( { f"debug_{i+1}":{}, } )
     
     global gameDataFileType
+    
+    joule_data.GameSource   = gameSource
 
     # Set the file type that we are reading.
     # ========================================
@@ -64,17 +56,6 @@ def main():
         gameDataFileType = FileType.TEXT
     else:
         gameDataFileType = FileType.BINARY
-    pass
-
-
-    # Assume that the game is Rock Band 3 if none is provided.
-    # ========================================
-
-    if len(sys.argv) == 2 and gameDataFileType == FileType.MIDI:
-        print("No Game Source provided, assuming Rock Band 3...")
-        joule_data.GameSource = "rb3"
-    else:
-        joule_data.GameSource = sys.argv[2]
     pass
 
 
@@ -167,8 +148,30 @@ if __name__ == "__main__":
     print ("")
     print ("Version: " + joule_data.Version)
     print ("========================================")
+    
+    
+    # Argument checking.
+    # ========================================
 
-    main()
+    if len(sys.argv) < 2:
+        print ("Invalid number of arguments!")
+        quit()
+    pass
+
+
+    # Assume that the game is Rock Band 3 if none is provided.
+    # ========================================
+
+    if len(sys.argv) == 2 and gameDataFileType == FileType.MIDI:
+        print("No Game Source provided, assuming Rock Band 3...")
+        argSource = "rb3"
+    else:
+        argSource = sys.argv[2]
+    pass
+
+    argLocation = sys.argv[1]
+
+    joule_run(argLocation, argSource)
 
     print ("========================================")
     print("Done.")

@@ -10,6 +10,10 @@ A second argument can be given to specify a different game to run checks for. If
 
 Example: `joule.py D:\RockBandJunk\song.mid rb3`
 
+Alternatively, you can import the function `joule_run` and provide both arguments.
+
+Example: `joule_run("D:\RockBandJunk\song.mid", "rb3")`
+
 ## Supported Games:
 * Rock Band 3: `rb3`
 * Rock Band 2: `rb2`

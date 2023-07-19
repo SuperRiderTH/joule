@@ -122,7 +122,7 @@ def joule_run(gameDataLocation:str, gameSource:str):
 
             validate_spacing(part)
         
-        validate_overdrive()
+        validate_instrument_phrases()
 
     elif joule_data.GameSource == "ch":
 

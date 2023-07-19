@@ -567,22 +567,24 @@ def rbn_drums_fills(partname:str):
 pass
 
 # template function
-def validate_overdrive():
+def validate_instrument_phrases():
     get_source_data()
 
     notesOn         = {}
     notesOff        = {}
     notesAll        = []
 
-    overdriveCheck  = []
+    noteCheck       = []
     unisonCheck     = []
     
-    inOverdrive     = False
-    overdriveCount  = 0
+    notesToCheck        = "Solo", "Overdrive"
     
-    lastODStart     = 0
-    lastNoteWasOD   = False
-    checkNextNote   = False
+    inSpecialNote       = False
+    overdriveCount      = 0
+    
+    lastNoteStart       = 0
+    lastNoteWasCheck    = False
+    checkNextNote       = False
     
 
     # Gather tracks for testing.
@@ -590,76 +592,82 @@ def validate_overdrive():
         
         if notesname_instruments_array[track] == "5LANES"\
         or notesname_instruments_array[track] == "DRUMS":
-            overdriveCheck.append(track)
+            noteCheck.append(track)
             unisonCheck.append(track)
         pass
     
         if notesname_instruments_array[track] == "PROKEYS":
-            overdriveCheck.append(track)
+            noteCheck.append(track)
         pass
     
     pass
 
-    for track in overdriveCheck:
-        print(f"Checking Overdrive for {track}...")
-        for diff in diff_array:
-            
-            if notesname_instruments_array[track] == "PROKEYS":
+    for noteType in notesToCheck:
+
+        for track in noteCheck:
+            print(f"Checking {noteType} for {track}...")
+            for diff in diff_array:
                 
-                if track != f"PART REAL_KEYS_{diff.capitalize()}":
-                    continue
-                
-                notesOn         = get_data_indexes("trackNotesOn",f"PART REAL_KEYS_{diff.capitalize()}","note")
-                notesOff        = get_data_indexes("trackNotesOff",f"PART REAL_KEYS_{diff.capitalize()}","note")
-                
-                overdriveOn     = get_data_indexes("trackNotesOn","PART REAL_KEYS_X","overdrive")
-                overdriveOff    = get_data_indexes("trackNotesOff","PART REAL_KEYS_X","overdrive")
-            else:
-                notesOn         = get_data_indexes("trackNotesOn",track,f"{diff}")
-                notesOff        = get_data_indexes("trackNotesOff",track,f"{diff}")
-                
-                overdriveOn     = get_data_indexes("trackNotesOn",track,"overdrive")
-                overdriveOff    = get_data_indexes("trackNotesOff",track,"overdrive")
-            pass
-            
-            
-            
-            notesAll = sorted(set(notesOn + notesOff + overdriveOn + overdriveOff))
-            
-            for note in notesAll:
-                
-                if note in overdriveOff:
-                    inOverdrive = False
+                if notesname_instruments_array[track] == "PROKEYS":
+                    
+                    if track != f"PART REAL_KEYS_{diff.capitalize()}":
+                        continue
+                    
+                    notesOn         = get_data_indexes("trackNotesOn",f"PART REAL_KEYS_{diff.capitalize()}","note")
+                    notesOff        = get_data_indexes("trackNotesOff",f"PART REAL_KEYS_{diff.capitalize()}","note")
+                    
+                    checkOn     = get_data_indexes("trackNotesOn","PART REAL_KEYS_X",noteType.lower())
+                    checkOff    = get_data_indexes("trackNotesOff","PART REAL_KEYS_X",noteType.lower())
+                else:
+                    notesOn         = get_data_indexes("trackNotesOn",track,f"{diff}")
+                    notesOff        = get_data_indexes("trackNotesOff",track,f"{diff}")
+                    
+                    checkOn     = get_data_indexes("trackNotesOn",track,noteType.lower())
+                    checkOff    = get_data_indexes("trackNotesOff",track,noteType.lower())
                 pass
                 
-                if note in overdriveOn:
-                    inOverdrive = True
-                    checkNextNote = True
-                    lastODStart = note
-                pass
                 
-                if note in notesOn:
                 
-                    if checkNextNote:
-                        checkNextNote = False
+                notesAll = sorted(set(notesOn + notesOff + checkOn + checkOff))
+                
+                for note in notesAll:
+                    
+                    if note in checkOff:
+                        inSpecialNote = False
                         
-                        if lastNoteWasOD and inOverdrive:
-                            output_add("issues_critical", f"{track} | {format_location(note)} | Notes are missing on {diff_array[diff]} between two Overdrive Phrases.")
+                        if checkNextNote:
+                            output_add("issues_critical", f"{track} | {format_location(lastNoteStart)} | No notes in {noteType} Phrase on {diff_array[diff]}.")
                         pass
+                    
                     pass
                     
-                    
-                    if inOverdrive:
-                        lastNoteWasOD = True
-                    else:
-                        lastNoteWasOD = False
+                    if note in checkOn:
+                        inSpecialNote = True
+                        checkNextNote = True
+                        lastNoteStart = note
                     pass
-                
+                    
+                    if note in notesOn:
+                    
+                        if checkNextNote:
+                            checkNextNote = False
+                            
+                            if lastNoteWasCheck and inSpecialNote and noteType == "Overdrive":
+                                output_add("issues_critical", f"{track} | {format_location(note)} | Notes are missing on {diff_array[diff]} between two {noteType} Phrases.")
+                            pass
+                        pass
+                        
+                        
+                        if inSpecialNote:
+                            lastNoteWasCheck = True
+                        else:
+                            lastNoteWasCheck = False
+                        pass
+                    
+                    pass
                 pass
             pass
-            
         pass
-    pass
 
     return
 

@@ -669,6 +669,16 @@ def validate_instrument_phrases():
             pass
         pass
 
+    for track in noteCheck:
+        for diff in diff_array:
+            if diff == "m" or diff == "e":
+                if len(get_data_indexes("trackNotesOn",track,f"{diff}_hopo")) > 0:
+                    output_add("issues_major", f"{track} | Forced HOPOs are not allowed on {diff_array[diff]}.")
+                pass
+            pass
+        pass
+    pass
+
     return
 
 pass

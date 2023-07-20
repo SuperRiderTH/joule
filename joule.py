@@ -103,6 +103,7 @@ def joule_run(gameDataLocation:str, gameSource:str):
 
             if part == "PART GUITAR" or part == "PART BASS" or part == "PART RHYTHM":
                 rbn_guitar_chords(part)
+                rbn_hopos(part)
             pass
 
             if part == "PART VOCALS" or part == "HARM1" or part == "HARM2" or part == "HARM3":
@@ -110,6 +111,9 @@ def joule_run(gameDataLocation:str, gameSource:str):
             pass
 
             if part == "PART KEYS":
+                
+                rbn_hopos(part)
+                
                 for diff in joule_data_rockband.diff_array:
                     rbn_broken_chords(part,diff)
                 pass

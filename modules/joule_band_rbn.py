@@ -146,6 +146,22 @@ def validate_spacing_vocals(partname:str):
 
 pass
 
+# template function
+def rbn_hopos(partname:str):
+    get_source_data()
+    
+    print(f"Processsing HOPOs for {partname}...")
+
+    for diff in diff_array:
+        if diff == "m" or diff == "e":
+            if len(get_data_indexes("trackNotesOn",partname,f"{diff}_hopo")) > 0:
+                output_add("issues_major", f"{partname} | Forced HOPOs are not allowed on {diff_array[diff]}.")
+            pass
+        pass
+    pass
+
+pass
+
 
 def rbn_vocals_lyrics(partname:str):
     print(f"Processsing Lyrics for {partname}...")
@@ -668,16 +684,6 @@ def validate_instrument_phrases():
                 pass
             pass
         pass
-
-    for track in noteCheck:
-        for diff in diff_array:
-            if diff == "m" or diff == "e":
-                if len(get_data_indexes("trackNotesOn",track,f"{diff}_hopo")) > 0:
-                    output_add("issues_major", f"{track} | Forced HOPOs are not allowed on {diff_array[diff]}.")
-                pass
-            pass
-        pass
-    pass
 
     return
 

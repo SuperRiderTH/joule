@@ -107,7 +107,13 @@ def joule_run(gameDataLocation:str, gameSource:str):
             pass
 
             if part == "PART VOCALS" or part == "HARM1" or part == "HARM2" or part == "HARM3":
+                
+                if part == "PART VOCALS":
+                    tow_check()
+                pass
+            
                 rbn_vocals_lyrics(part)
+                
             pass
 
             if part == "PART KEYS":

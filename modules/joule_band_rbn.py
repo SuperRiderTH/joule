@@ -161,6 +161,20 @@ def rbn_hopos(partname:str):
 
 pass
 
+def tow_check():
+    
+    phrasesP1 = get_data_indexes("trackNotesOn", "PART VOCALS", 'phrase_p1')
+    phrasesP2 = get_data_indexes("trackNotesOn", "PART VOCALS", 'phrase_p2')
+    
+    if len(phrasesP2) > 0:
+        if len(phrasesP1) != len(phrasesP2):
+            output_add("issues_major", f"PART VOCALS | Player 1 and 2 do not have an equal amount of Tug of War Markers.")
+        pass
+    pass
+
+pass
+
+
 def rbn_vocals_lyrics(partname:str):
     print(f"Processsing Lyrics for {partname}...")
     get_source_data()

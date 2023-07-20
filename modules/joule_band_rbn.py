@@ -2,7 +2,10 @@ import joule_data
 
 from joule_system import *
 from joule_band_handlers import *
+
 import joule_data_rockband
+import joule_data_clonehero
+import joule_data_yarg
 
 # We need this for later if HARM3 is accessed.
 indexesVocalPhrasesOn_HARM2 = []
@@ -24,20 +27,29 @@ def get_source_data():
     global span_limit_keys_pro
     
     if joule_data.GameSource in joule_data.GameSourceRBLike:
-        notesname_array = joule_data_rockband.notesname_array
-        notes_pads = joule_data_rockband.notes_pads
-        notes_drum = joule_data_rockband.notes_drum
-        notes_lane = joule_data_rockband.notes_lane
-        diff_array = joule_data_rockband.diff_array
-        diff_highest = joule_data_rockband.diff_highest
-        chord_limit = joule_data_rockband.chord_limit
-        chord_limit_keys_pro = joule_data_rockband.chord_limit_keys_pro
-        note_overdrive = joule_data_rockband.note_overdrive
-        notesname_instruments_array = joule_data_rockband.notesname_instruments_array
-        span_limit_keys_pro = joule_data_rockband.span_limit_keys_pro
-    elif joule_data.GameSource == "ch":
-        pass
-    pass
+        base = joule_data_rockband
+    
+    if joule_data.GameSource == "ch":
+        base = joule_data_clonehero
+    
+    if joule_data.GameSource == "yarg":
+        base = joule_data_yarg
+
+    notesname_array = base.notesname_array
+    notes_pads = base.notes_pads
+    notes_drum = base.notes_drum
+    notes_lane = base.notes_lane
+    diff_array = base.diff_array
+    diff_highest = base.diff_highest
+    chord_limit = base.chord_limit
+    chord_limit_keys_pro = base.chord_limit_keys_pro
+    note_overdrive = base.note_overdrive
+    notesname_instruments_array = base.notesname_instruments_array
+    span_limit_keys_pro = base.span_limit_keys_pro
+
+    joule_data.BrokenChordsAllowed = base.brokenChordsAllowed
+    joule_data.LowerHOPOsAllowed = base.lowerHOPOsAllowed
+
 pass
 
 
@@ -149,12 +161,17 @@ pass
 def rbn_hopos(partname:str):
     get_source_data()
     
-    print(f"Processsing HOPOs for {partname}...")
+    if joule_data.LowerHOPOsAllowed:
+        return
+    else:
+        
+        print(f"Processsing HOPOs for {partname}...")
 
-    for diff in diff_array:
-        if diff == "m" or diff == "e":
-            if len(get_data_indexes("trackNotesOn",partname,f"{diff}_hopo")) > 0:
-                output_add("issues_major", f"{partname} | Forced HOPOs are not allowed on {diff_array[diff]}.")
+        for diff in diff_array:
+            if diff == "m" or diff == "e":
+                if len(get_data_indexes("trackNotesOn",partname,f"{diff}_hopo")) > 0:
+                    output_add("issues_major", f"{partname} | Forced HOPOs are not allowed on {diff_array[diff]}.")
+                pass
             pass
         pass
     pass
@@ -717,8 +734,8 @@ def rbn_broken_chords(partname:str, diff:str):
     chordHappening = False
     brokenChordsAllowed = False
 
-    if joule_data.GameSourceBrokenChordsAllowed[joule_data.GameSource]\
-    or joule_data.GameSource == "rb3" and partname == "PART KEYS":
+    if joule_data.BrokenChordsAllowed\
+    or partname == "PART KEYS":
         brokenChordsAllowed = True
     pass
 

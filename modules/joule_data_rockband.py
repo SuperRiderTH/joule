@@ -2,6 +2,10 @@
 This file contains all the information that Rock Band games use.
 '''
 
+brokenChordsAllowed     = False
+lowerHOPOsAllowed       = False
+note_overdrive          = 116
+
 # Any part in this list will be processed.
 notesname_instruments_array = {
     "PART DRUMS": "DRUMS",
@@ -31,7 +35,9 @@ notesname_instruments_array = {
     }
 
 notes_pads = ['red','yellow','blue','green',]
-notes_drum = ['kick','red','yellow','blue','green',]
+notes_kick = ['kick',]
+notes_drum = notes_pads + notes_kick
+
 notes_lane = ['green','red','yellow','blue','orange',]
 
 diff_highest = "x"
@@ -62,8 +68,6 @@ span_limit_keys_pro = {
     "m": 9,
     "e": 60,
 }
-
-note_overdrive = 116
 
 # Internal names for these notes.
 notesname_array = {

@@ -20,9 +20,9 @@ Example: `joule_run("D:\RockBandJunk\song.mid", "rb3")`
 * Lego Rock Band: `lego`
 * The Beatles: Rock Band: `beatles`
 * Phase Shift: `ps`
+* Yet Another Rhythm Game: `yarg`
+  * Missing True Drums support.
 
 ## Preliminary Support:
 * Clone Hero: `ch`
   * .chart parsing needs to be implemented, RBN checks will be mostly used.
-* Yet Another Rhythm Game: `yarg`
-  * Technically functions with base Rock Band notes, does not currently check for any additional notes. Uses RBN checks.

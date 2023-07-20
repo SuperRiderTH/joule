@@ -39,12 +39,5 @@ GameSourceRBLike = {
     "yarg",
 }
 
-GameSourceBrokenChordsAllowed = {
-    "rb3"       : False,
-    "rb2"       : False,
-    "lego"      : False,
-    "beatles"   : False,
-    "ps"        : True,
-    "ch"        : True,
-    "yarg"      : True,
-}
+BrokenChordsAllowed     = False
+LowerHOPOsAllowed       = False

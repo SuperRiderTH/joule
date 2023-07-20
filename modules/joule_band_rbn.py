@@ -146,7 +146,6 @@ def validate_spacing_vocals(partname:str):
 
 pass
 
-# template function
 def rbn_hopos(partname:str):
     get_source_data()
     
@@ -161,7 +160,6 @@ def rbn_hopos(partname:str):
     pass
 
 pass
-
 
 def rbn_vocals_lyrics(partname:str):
     print(f"Processsing Lyrics for {partname}...")
@@ -800,6 +798,18 @@ def rbn_keys_real_chords(partname:str):
     
     chordHighest    = 48
     chordLowest     = 72
+    
+    currentRange    = 0
+    
+    noteRangeIndex  = [57,55,53,52,50,48]
+    noteRanges      = [ 
+        "range_a2_c4",
+        "range_g2_b3",
+        "range_f2_a3",
+        "range_e2_g3",
+        "range_d2_f3",
+        "range_c2_c3"
+    ]
 
     notesOn.update( { "notes":[] } )
     notesOff.update( { "notes":[] } )
@@ -821,8 +831,20 @@ def rbn_keys_real_chords(partname:str):
         notesOn["notes"] += tempNotesOn
         notesOff["notes"] += tempNotesOff
     pass
+
+    _tempNotesAll = []
+
+    for nRange in noteRanges:
+        _tempOn = get_data_indexes("trackNotesOn",partname,f"{nRange}") 
+        notesOn.update( { f"{nRange}" : _tempOn } )
+        
+        _tempNotesAll += _tempOn
+        
+    pass
+
+    _tempNotesAll += notesOn["notes"] + notesOff["notes"]
     
-    notesAll = sorted(set( notesOn["notes"] + notesOff["notes"] ))
+    notesAll = sorted(set( _tempNotesAll ))
 
     # Check the notes.
     for note in notesAll:
@@ -837,7 +859,22 @@ def rbn_keys_real_chords(partname:str):
             pass
 
         pass
-
+    
+        for nRange in noteRanges:
+            if note in notesOn[nRange]:
+                
+                if diff == "e" or diff == "m":
+                    if currentRange != 0:
+                        output_add("issues_major", f"{partname} | {format_location(note)} | Lane Shifts are not allowed on {diff_array[diff]}.")
+                    pass
+                pass
+            
+                currentRange = noteRangeIndex[noteRanges.index(nRange)]
+                output_add("debug_3",f"{partname} | {format_location(note)} | {nRange}")
+                
+            pass
+        pass
+    
         if note in notesOn["notes"]:
 
             if lanesUsed == 0:
@@ -859,7 +896,18 @@ def rbn_keys_real_chords(partname:str):
                     if chordHighest < noteCheck:
                         chordHighest = noteCheck
                     pass
+                
+                    _tempStr = f"{partname} | {format_location(note)} | {currentRange}:{currentRange + 16} | {noteCheck} | {notesname_array[noteNames][noteCheck]}"
+                
+                    if ( noteCheck < currentRange or noteCheck > ( currentRange + 16) ):
+                        _tempStr += " | Outside Range"
+                        output_add("issues_major", f"{partname} | {format_location(noteStartTime)} | Note is outside of Note Range on {diff_array[diff]}.")
+                    pass
+                
+                    output_add("debug_3",_tempStr)
+                    
                 pass
+            
             pass
         
             if ( chordHighest - chordLowest > ( span_limit_keys_pro[diff] ) ):

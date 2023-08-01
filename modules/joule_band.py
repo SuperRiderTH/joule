@@ -3,12 +3,11 @@
 
 import joule_data
 import math
+import re
 
 from joule_system import *
 from joule_band_handlers import *
 
-import joule_data_rockband
-import joule_data_clonehero
 
 #trackNotes[track, note, time]
 #trackNotes["PART DRUMS", "x_kick", 0] = True
@@ -29,6 +28,58 @@ ticksPerBeat  = 0
 # Functions
 # ========================================
 
+def section_read( line_start:int ):
+    
+    inSection = False
+    
+    sectionName = joule_data.GameDataFile[line_start].strip()[1:-1]
+    
+    print(sectionName)
+    
+    if sectionName in joule_data.TracksFound:
+        output_add("issues_critical",f"Duplicate track '{sectionName}' found! This duplicate track will not be processed.")
+        return
+    else:
+        joule_data.TracksFound.append(sectionName)
+    pass
+
+    lineIndex = line_start
+
+    _tempData = []
+    
+    for i in range(lineIndex, len(joule_data.GameDataFile)):
+        
+        line = joule_data.GameDataFile[i]
+
+        if line.strip().startswith("{") or '[' in line:
+            
+            if inSection == True:
+                print(f"Error! Section '{sectionName}' ends early at line {i+1}!")
+                return
+            else:
+                if line.strip().startswith("{"):
+                    inSection = True
+                pass
+            pass
+        elif line.strip().startswith("}"):
+            joule_data.GameData["Sections"] = trackNotesMeta
+            return
+        else:
+            lineGroups = re.search("(?:\ *)([^\ =]+)(?:\ *)(?:={1})(?:\ *)(.+)(?:)", line).groups()
+            
+            if sectionName == "Song":
+                print(lineGroups)
+            
+            if lineGroups[0].lower() == "resolution":
+                joule_data.TicksPerBeat = int(lineGroups[1])
+
+            #_tempData.update()
+            
+        
+
+
+pass
+
 
 def initialize_band():
 
@@ -39,17 +90,23 @@ def initialize_band():
     global time_signature_measure
     global time_signature_time
 
+    base = get_source_data()
+    
+    notesname_instruments_array = base.notesname_instruments_array
+    notesname_array = base.notesname_array
+
     time_signature_last_position    = 0
     time_signature_last_measure     = 0
 
+
     # If we are working with these games they use MIDI for their notes,
     # so we want to process that.
-    # TODO: Separate this into a MIDI loading function.
-    if joule_data.GameSource in joule_data.GameSourceRBLike:
-        notesname_instruments_array = joule_data_rockband.notesname_instruments_array
-        notesname_array = joule_data_rockband.notesname_array
+    
+    if joule_data.GameDataFileType == "MIDI":
         
-        ticksPerBeat = joule_data.gameDataFile.ticks_per_beat # type: ignore
+        joule_data.TicksPerBeat = joule_data.GameDataFile.ticks_per_beat # type: ignore
+
+        ticksPerBeat = joule_data.TicksPerBeat
         joule_data.NoteTime = math.floor(ticksPerBeat / 32)
 
         output_add("debug_1",f"ticksPerBeat: {ticksPerBeat}")
@@ -64,7 +121,7 @@ def initialize_band():
         pass
 
         # Track processing
-        for i, track in enumerate(joule_data.gameDataFile.tracks): # type: ignore
+        for i, track in enumerate(joule_data.GameDataFile.tracks): # type: ignore
             trackTime           = 0
 
             last_time_signature_num        = 4
@@ -171,6 +228,27 @@ def initialize_band():
                 pass
             pass
         pass
+    pass
+
+    if joule_data.GameDataFileType == "CHART":
+        
+        # Find every section, do something about it.
+        for i in range(0, len(joule_data.GameDataFile)):
+            
+            line = joule_data.GameDataFile[i]
+            
+            # We don't want zero width spaces here. Get rid of them.
+            if chr(65279) in line:
+                joule_data.GameDataFile[i] = line.replace(chr(65279), '')
+                line = joule_data.GameDataFile[i]
+                
+            # If we find a section, we want that info.
+            if line.strip().startswith("["):
+                section_read(i)
+            pass
+        
+        pass
+            
     pass
 
 

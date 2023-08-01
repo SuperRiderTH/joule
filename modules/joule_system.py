@@ -3,6 +3,10 @@
 
 import joule_data
 
+import joule_data_rockband
+import joule_data_clonehero
+import joule_data_yarg
+
 def output_add( output_type:str, output:str ):
 
     if output_type.startswith("debug"):
@@ -12,6 +16,22 @@ def output_add( output_type:str, output:str ):
     _index = len(joule_data.GameDataOutput[output_type])
     joule_data.GameDataOutput[output_type][_index] = output
 pass
+
+def get_source_data():
+    
+    if joule_data.GameSource in joule_data.GameSourceRBLike:
+        temp = joule_data_rockband
+    
+    if joule_data.GameSource == "ch":
+        temp = joule_data_clonehero
+    
+    if joule_data.GameSource == "yarg":
+        temp = joule_data_yarg
+        
+    return temp
+
+pass
+
 
 def get_data_indexes(type:str, track:str, key:str):
 

@@ -12,7 +12,7 @@ indexesVocalPhrasesOn_HARM2 = []
 indexesVocalPhrasesOff_HARM2 = []
 
 
-def get_source_data():
+def set_source_data():
 
     global notesname_array
     global notes_pads
@@ -26,14 +26,7 @@ def get_source_data():
     global notesname_instruments_array
     global span_limit_keys_pro
     
-    if joule_data.GameSource in joule_data.GameSourceRBLike:
-        base = joule_data_rockband
-    
-    if joule_data.GameSource == "ch":
-        base = joule_data_clonehero
-    
-    if joule_data.GameSource == "yarg":
-        base = joule_data_yarg
+    base = get_source_data()
 
     notesname_array = base.notesname_array
     notes_pads = base.notes_pads
@@ -55,7 +48,7 @@ pass
 
 # template function
 def validate_THING(partname:str):
-    get_source_data()
+    set_source_data()
 
     for diff in diff_array:
         print(f"Processsing THING for {partname} on {diff_array[diff]}...")
@@ -73,11 +66,11 @@ def validate_spacing(partname:str):
 pass
 
 def validate_spacing_vocals(partname:str):
-    get_source_data()
+    set_source_data()
 
     global notesname_array
 
-    noteLength64 = joule_data.gameDataFile.ticks_per_beat / 16
+    noteLength64 = joule_data.GameDataFile.ticks_per_beat / 16
     noteLength32 = noteLength64 * 2
     noteLength16 = noteLength64 * 4
 
@@ -159,7 +152,7 @@ def validate_spacing_vocals(partname:str):
 pass
 
 def rbn_hopos(partname:str):
-    get_source_data()
+    set_source_data()
     
     if joule_data.LowerHOPOsAllowed:
         return
@@ -194,7 +187,7 @@ pass
 
 def rbn_vocals_lyrics(partname:str):
     print(f"Processsing Lyrics for {partname}...")
-    get_source_data()
+    set_source_data()
 
     global indexesVocalPhrasesOn_HARM2
     global indexesVocalPhrasesOff_HARM2
@@ -320,7 +313,7 @@ def rbn_vocals_lyrics(partname:str):
 pass
 
 def rbn_guitar_chords(partname:str):
-    get_source_data()
+    set_source_data()
 
     notesOn = {}
     notesOff = {}
@@ -424,7 +417,7 @@ pass
 
 
 def rbn_drums_limbs(partname:str):
-    get_source_data()
+    set_source_data()
         
 
     for diff in diff_array:
@@ -500,7 +493,7 @@ def rbn_drums_limbs(partname:str):
 pass
 
 def rbn_drums_fills(partname:str):
-    get_source_data()
+    set_source_data()
 
     print(f"Processsing fills for {partname}...")
 
@@ -613,7 +606,7 @@ pass
 
 # template function
 def validate_instrument_phrases():
-    get_source_data()
+    set_source_data()
 
     notesOn         = {}
     notesOff        = {}
@@ -721,7 +714,7 @@ pass
 
 
 def rbn_broken_chords(partname:str, diff:str):
-    get_source_data()
+    set_source_data()
     
     notesOn       = {}
     notesOff      = {}
@@ -813,7 +806,7 @@ def rbn_broken_chords(partname:str, diff:str):
 pass
 
 def rbn_keys_real_chords(partname:str):
-    get_source_data()
+    set_source_data()
     
     print(f"Processsing chords for {partname}...")
 

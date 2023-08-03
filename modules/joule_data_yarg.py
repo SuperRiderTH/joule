@@ -36,7 +36,7 @@ notes_drum = notes_pads + notes_kick
 notes_lane = ['open','green','red','yellow','blue','orange',]
 
 # Internal names for these notes.
-notesname_array = {
+notename_array = {
     "5LANES" :
     {
         127 : "trill", 

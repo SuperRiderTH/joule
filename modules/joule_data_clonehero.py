@@ -2,9 +2,7 @@
 This file contains all the information that Clone Hero uses.
 '''
 
-# TODO: all of it.
-
-from joule_data_rockband import *
+from joule_data_yarg import *
 
 brokenChordsAllowed     = True
 lowerHOPOsAllowed       = True
@@ -37,8 +35,66 @@ notesname_instruments_array = {
     "HARM3": "VOCALS",
     }
 
-notes_pads = ['red','yellow','blue','green',]
+notes_pads = ['red','yellow','blue','green','orange',]
 notes_kick = ['kick','kick_2x',]
 notes_drum = notes_pads + notes_kick
 
 notes_lane = ['open','green','red','yellow','blue','orange',]
+
+notename_chart_notes = {
+    "5LANES" :
+    {
+        0 : "green", 
+        1 : "red",
+        2 : "yellow", 
+        3 : "blue",
+        4 : "orange",
+        7 : "open",
+        5 : "hopo",
+        6 : "tap",
+    },
+    "DRUMS" :
+    {
+        0 : "kick",
+        1 : "red",
+        2 : "yellow",
+        3 : "blue",
+        4 : "orange",
+        5 : "green",
+        32 : "kick_2x",
+        
+        34 : "accent_red",
+        35 : "accent_yellow",
+        36 : "accent_blue",
+        37 : "accent_orange",
+        38 : "accent_green",
+        
+        40 : "ghost_red",
+        41 : "ghost_yellow",
+        42 : "ghost_blue",
+        43 : "ghost_orange",
+        44 : "ghost_green",
+        
+        66 : "cymbal_yellow",
+        67 : "cymbal_blue",
+        68 : "cymbal_green",
+    },
+}
+
+# We are using Rock Band style naming for consistency.
+notename_chart_phrase = {
+    "5LANES" :
+    {
+        0 : "phrase_p1", 
+        1 : "phrase_p2",
+        2 : "overdrive", 
+    },
+    "DRUMS" :
+    {
+        2 : "overdrive",
+        64 : "fill_kick",
+        65 : "roll_single",
+        66 : "roll_swell",
+    }
+}
+

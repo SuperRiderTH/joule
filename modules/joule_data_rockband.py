@@ -70,7 +70,7 @@ span_limit_keys_pro = {
 }
 
 # Internal names for these notes.
-notesname_array = {
+notename_array = {
     "5LANES" :
     {
         127 : "trill", 

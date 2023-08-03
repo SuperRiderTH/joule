@@ -14,7 +14,7 @@ indexesVocalPhrasesOff_HARM2 = []
 
 def set_source_data():
 
-    global notesname_array
+    global notename_array
     global notes_pads
     global notes_drum
     global notes_lane
@@ -28,7 +28,7 @@ def set_source_data():
     
     base = get_source_data()
 
-    notesname_array = base.notesname_array
+    notename_array = base.notename_array
     notes_pads = base.notes_pads
     notes_drum = base.notes_drum
     notes_lane = base.notes_lane
@@ -68,7 +68,7 @@ pass
 def validate_spacing_vocals(partname:str):
     set_source_data()
 
-    global notesname_array
+    global notename_array
 
     noteLength64 = joule_data.GameDataFile.ticks_per_beat / 16
     noteLength32 = noteLength64 * 2
@@ -846,11 +846,11 @@ def rbn_keys_real_chords(partname:str):
     # Gather the notes for checking.
     
     for noteCheck in range(48,73):
-        tempNotesOn = ( get_data_indexes("trackNotesOn", partname, notesname_array[noteNames][noteCheck]) )
-        tempNotesOff = ( get_data_indexes("trackNotesOff", partname, notesname_array[noteNames][noteCheck]) )
+        tempNotesOn = ( get_data_indexes("trackNotesOn", partname, notename_array[noteNames][noteCheck]) )
+        tempNotesOff = ( get_data_indexes("trackNotesOff", partname, notename_array[noteNames][noteCheck]) )
         
-        notesOn.update( { f"{notesname_array[noteNames][noteCheck]}" : tempNotesOn } )
-        notesOff.update( { f"{notesname_array[noteNames][noteCheck]}" : tempNotesOff } )
+        notesOn.update( { f"{notename_array[noteNames][noteCheck]}" : tempNotesOn } )
+        notesOff.update( { f"{notename_array[noteNames][noteCheck]}" : tempNotesOff } )
         
         notesOn["notes"] += tempNotesOn
         notesOff["notes"] += tempNotesOff
@@ -912,7 +912,7 @@ def rbn_keys_real_chords(partname:str):
             pass
         
             for noteCheck in range(48,73):
-                if note in notesOn[notesname_array[noteNames][noteCheck]]:
+                if note in notesOn[notename_array[noteNames][noteCheck]]:
                     if (chordLowest > noteCheck):
                         chordLowest = noteCheck
                     pass
@@ -921,7 +921,7 @@ def rbn_keys_real_chords(partname:str):
                         chordHighest = noteCheck
                     pass
                 
-                    _tempStr = f"{partname} | {format_location(note)} | {currentRange}:{currentRange + 16} | {noteCheck} | {notesname_array[noteNames][noteCheck]}"
+                    _tempStr = f"{partname} | {format_location(note)} | {currentRange}:{currentRange + 16} | {noteCheck} | {notename_array[noteNames][noteCheck]}"
                 
                     if ( noteCheck < currentRange or noteCheck > ( currentRange + 16) ):
                         _tempStr += " | Outside Range"

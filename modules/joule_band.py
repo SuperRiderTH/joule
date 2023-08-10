@@ -71,12 +71,10 @@ def section_read( line_start:int ):
     
     print("Found " + sectionName + "...")
     
-    if sectionName in joule_data.TracksFound:
+    if sectionName in joule_data.GameData["sections"]:
         output_add("issues_critical",f"Duplicate section '{sectionName}' found! This duplicate section will not be processed.")
         return
-    else:
-        joule_data.TracksFound.append(sectionName)
-    pass
+    
 
     lineIndex = line_start
 
@@ -244,6 +242,9 @@ def initialize_band():
 
     if joule_data.GameDataFileType == "CHART":
         
+        notename_chart_notes = base.notename_chart_notes
+        notename_chart_phrase = base.notename_chart_phrase
+        
         # Parse the .chart, obtain all the section data.
         for i in range(0, len(joule_data.GameDataFile)):
             
@@ -272,10 +273,8 @@ def initialize_band():
             return False
         
         # Instrument Processing
-        for i, track in enumerate(joule_data.TracksFound):
-            
-            print(track)
-            
+        for i, track in enumerate(joule_data.GameData["sections"]):
+
             diff_keys   = list(diff_array.keys())
             diff_values = list(diff_array.values())
             
@@ -286,15 +285,78 @@ def initialize_band():
                 diff = diff_keys[i]
                 
                 if track.startswith(diff_name):
-                    print(f"Found {diff_name} difficulty...")
-                    
+
                     part_name = track.replace(diff_name, "")
-                    
-                    print(part_name)
-            
-            if part_name in notesname_instruments_array:
+
+                    if part_name in notesname_instruments_array:
+                        
+                        if part_name not in joule_data.TracksFound:
+                            joule_data.TracksFound.append(part_name)
+                        pass
+                        
+                        # Store the type of instrument we are, for example "5LANE".
+                        _tempName = notesname_instruments_array[part_name]
+                        
+                        for msg in joule_data.GameData["sections"][track]:
+                            
+                            _tempData = joule_data.GameData["sections"][track][msg].split(" ")
+                            
+                            noteType    = _tempData[0]
+                            noteIndex   = _tempData[1]
+                            
+                            if noteType == "N" or noteType == "S":
+                                
+                                if len(_tempData) != 3:
+                                    output_add("issues_critical",f"{track} | {msg} | Invalid Note found!")
+                                    continue
+                                
+                                noteIndex   = int(noteIndex)
+                                noteLength  = int(_tempData[2])
+                                
+                                # Get the note names depending on the note type.
+                                if noteType == "N":
+                                    notenames = notename_chart_notes
+                                if noteType == "S":
+                                    notenames = notename_chart_phrase
+                                
+                                
+                                if noteIndex in notenames[_tempName]:
+                                    
+                                    noteName = notenames[_tempName][noteIndex]
+                                    
+                                    # If it is an played note, we give it a difficulty.
+                                    if noteType == "N":
+                                        noteName = f"{diff}_{noteName}"
+                                    pass
+                                    
+                                    trackNotesOn[part_name, noteName, int(msg)] = True
+                                    trackNotesOff[part_name, noteName, int(msg) + noteLength] = True
+                                    
+                                else:
+                                    # Yes, this error outputs in tick time.
+                                    output_add("issues_critical",f"{track} | {msg} | Unknown Note '{str(noteIndex)}' found!")
+                                pass
+                                
+                            elif noteType == "E":
+                                match noteIndex:
+                                    case "solo":
+                                        trackNotesOn[part_name, "solo", int(msg)] = True
+                                    case "soloend":
+                                        trackNotesOff[part_name, "solo", int(msg)] = True
+                                    case _:
+                                        output_add("issues_critical",f"{track} | {msg} | Unknown Event '{str(noteIndex)}' found!")
+                            else:
+                                output_add("issues_critical",f"{track} | {msg} | Unknown Note Type '{str(noteType)}' found!")
+                            pass
+                            
+                          
+                        pass
+                    pass
                 pass
             pass
+        pass
+            
+            
     pass
 
 

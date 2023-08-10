@@ -7,7 +7,7 @@ PatchVersion    = 0
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
 
 # Verbosity of the debug output.
-Debug           = 2
+Debug           = 3
 
 GameDataFile        = None
 GameDataFileType    = "NONE"

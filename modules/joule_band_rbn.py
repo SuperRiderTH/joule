@@ -728,7 +728,7 @@ def rbn_broken_chords(partname:str, diff:str):
     brokenChordsAllowed = False
 
     if joule_data.BrokenChordsAllowed\
-    or partname == "PART KEYS":
+    or partname in ("PART KEYS", "Keyboard"):
         brokenChordsAllowed = True
     pass
 

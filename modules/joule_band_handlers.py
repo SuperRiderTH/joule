@@ -28,10 +28,10 @@ def format_location( note_location:int ):
             location_denom = joule_data.GameData["trackNotesMeta"]["meta","time_signature_denom",joule_band.time_signature_time[location_index]]
 
             divisor_factor = (location_denom / 4)
-            divisor = ( joule_band.ticksPerBeat / divisor_factor ) * location_num
+            divisor = ( joule_data.TicksPerBeat / divisor_factor ) * location_num
 
             time_1 = (location_offset / divisor) + joule_band.time_signature_measure[location_index]
-            time_2 = (location_offset % divisor ) / ( joule_band.ticksPerBeat / (location_denom / 4) )
+            time_2 = (location_offset % divisor ) / ( joule_data.TicksPerBeat / (location_denom / 4) )
 
             time_1 = math.floor(time_1)
             time_2 = math.floor(time_2)

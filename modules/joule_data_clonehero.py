@@ -11,7 +11,7 @@ lowerHOPOsAllowed       = True
 notesname_instruments_array = {
     "PART DRUMS": "DRUMS",
     "PART DRUMS_2X": "DRUMS",
-    #"PART TRUE_DRUMS": "TRUEDRUMS"
+    "Drums": "DRUMS",
 
     "PART GUITAR": "5LANES",
     "PART RHYTHM": "5LANES",
@@ -23,6 +23,11 @@ notesname_instruments_array = {
     "DoubleBass": "5LANES",
     "DoubleRhythm": "5LANES",
     "Keyboard": "5LANES",
+    
+    "GHLGuitar": "6LANES",
+    "GHLBass": "6LANES",
+    "GHLRhythm": "6LANES",
+    "GHLCoop": "6LANES",
 
     "PART REAL_KEYS_X": "PROKEYS",
     "PART REAL_KEYS_H": "PROKEYS",

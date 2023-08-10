@@ -33,7 +33,7 @@ last_time_signature_denom      = 4
 
 def process_time_signature( ticks:int, numerator:int, denominator:int ):
     
-    print(f"Found {numerator}/{denominator} at {ticks}.")
+    #print(f"Found {numerator}/{denominator} at {ticks}.")
     
     global time_signature_last_position
     global time_signature_last_measure
@@ -78,12 +78,9 @@ def section_read( line_start:int ):
     if sectionName in joule_data.GameData["sections"]:
         output_add("issues_critical",f"Duplicate section '{sectionName}' found! This duplicate section will not be processed.")
         return
-    
 
     lineIndex = line_start
 
-    
-    
     for i in range(lineIndex, len(joule_data.GameDataFile)):
         
         line = joule_data.GameDataFile[i]
@@ -106,8 +103,7 @@ def section_read( line_start:int ):
         else:
             sectionData.append(line.strip())
         pass
-            
-
+    pass
 pass
 
 
@@ -379,15 +375,11 @@ def initialize_band():
                             else:
                                 output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
                             pass
-                        
+                        pass    
                     pass
                 pass
-                
             pass
-
         pass
-            
-            
     pass
 
 

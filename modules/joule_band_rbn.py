@@ -328,21 +328,24 @@ def rbn_guitar_chords(partname:str):
     # ========================================
     
     for diff in diff_array:
+        
+        notesOnDiff[diff] = {}
+        notesOffDiff[diff] = {}
+        notesAllDiff[diff] = {}
 
         for note in notes_lane:
-            notesOnDiff[diff] = {}
-            notesOffDiff[diff] = {}
-            notesAllDiff[diff] = {}
-
             notesOnDiff[diff].update( { f"{note}" : get_data_indexes("trackNotesOn",partname,f"{diff}_{note}") } )
             notesOffDiff[diff].update( { f"{note}" : get_data_indexes("trackNotesOff",partname,f"{diff}_{note}") } )
             notesAllDiff[diff] = sorted(set( get_data_indexes("trackNotesOn",partname,f"{diff}") + get_data_indexes("trackNotesOff",partname,f"{diff}") ))
-        pass
-        
+        pass    
     pass
 
-
     for diff in diff_array:
+        
+        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) == 0:
+            output_add("debug_3", f"{partname} | rbn_guitar_chords | No notes found on {diff_array[diff]}.")
+            continue
+
         print(f"Processsing chords for {partname} on {diff_array[diff]}...")
 
         notesOn      = notesOnDiff[diff]
@@ -350,10 +353,6 @@ def rbn_guitar_chords(partname:str):
 
         # notesAll is a list of every position where there is a note on and off, without any duplicates.
         notesAll      = notesAllDiff[diff]
-
-        for note in notes_lane:
-            notesOn.update( { f"{note}" : get_data_indexes("trackNotesOn",partname,f"{diff}_{note}") } )
-            notesOff.update( { f"{note}" : get_data_indexes("trackNotesOff",partname,f"{diff}_{note}") } )
 
 
         # Green Orange chord detection
@@ -421,6 +420,10 @@ def rbn_drums_limbs(partname:str):
         
 
     for diff in diff_array:
+        
+        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) == 0:
+            output_add("debug_3", f"{partname} | rbn_drums_limbs | No notes found on {diff_array[diff]}.")
+            continue
 
         print(f"Processsing limbs for {partname} on {diff_array[diff]}...")
 
@@ -645,6 +648,14 @@ def validate_instrument_phrases():
         for track in noteCheck:
             print(f"Checking {noteType} for {track}...")
             for diff in diff_array:
+                
+                if len(get_data_indexes("trackNotesOn",track,f"{diff}")) == 0:
+                    output_add("debug_3", f"{track} | validate_instrument_phrases | No notes found on {diff_array[diff]}.")
+                    
+                    if joule_data.GameSource in joule_data.GameSourceRBLike and joule_data.GameSource != "yarg":
+                        output_add("issues_critical", f"{track} | No notes found on {diff_array[diff]}.")
+                    
+                    continue
                 
                 if notesname_instruments_array[track] == "PROKEYS":
                     

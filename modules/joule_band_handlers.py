@@ -41,11 +41,3 @@ def format_location( note_location:int ):
     return "Error.Error"
 pass
 
-def note_range( note_location:int ):
-
-    # This function returns a range of locations that
-    # should be checked for the note time given. 
-
-    return list(range( note_location - joule_data.NoteTime, note_location + joule_data.NoteTime))
-pass
-

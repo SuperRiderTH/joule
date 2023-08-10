@@ -28,7 +28,6 @@ GameSourceList = {
 }
 
 # Band Specific variables.
-NoteTime        = 0
 TracksFound     = []
 TicksPerBeat    = 480
 

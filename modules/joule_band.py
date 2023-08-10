@@ -130,10 +130,8 @@ def initialize_band():
     if joule_data.GameDataFileType == "MIDI":
         
         joule_data.TicksPerBeat = joule_data.GameDataFile.ticks_per_beat # type: ignore
-        joule_data.NoteTime = math.floor(joule_data.TicksPerBeat / 32)
 
         output_add("debug_1",f"ticksPerBeat: {joule_data.TicksPerBeat}")
-        output_add("debug_1",f"NoteTime: {joule_data.NoteTime}")
         
         # Rock Band expects 480 ticks per QN.
         # This should not have made it through Magma, but just in case.

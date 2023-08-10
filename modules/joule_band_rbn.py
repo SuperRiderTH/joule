@@ -649,7 +649,13 @@ def validate_instrument_phrases():
             print(f"Checking {noteType} for {track}...")
             for diff in diff_array:
                 
-                if len(get_data_indexes("trackNotesOn",track,f"{diff}")) == 0:
+                if track.startswith("PART REAL_KEYS"):
+                    _tempCheck = "note"
+                else:
+                    _tempCheck = diff
+                pass
+                
+                if len( get_data_indexes( "trackNotesOn", track, _tempCheck ) ) == 0:
                     output_add("debug_3", f"{track} | validate_instrument_phrases | No notes found on {diff_array[diff]}.")
                     
                     if joule_data.GameSource in joule_data.GameSourceRBLike and joule_data.GameSource != "yarg":

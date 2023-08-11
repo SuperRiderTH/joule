@@ -32,14 +32,14 @@ last_time_signature_denom      = 4
 
 
 def process_time_signature( ticks:int, numerator:int, denominator:int ):
-    
+
     #print(f"Found {numerator}/{denominator} at {ticks}.")
-    
+
     global time_signature_last_position
     global time_signature_last_measure
     global last_time_signature_num
     global last_time_signature_denom
-    
+
     trackNotesMeta["meta","time_signature_num",ticks] = numerator
     trackNotesMeta["meta","time_signature_denom",ticks] = denominator
 
@@ -57,7 +57,7 @@ def process_time_signature( ticks:int, numerator:int, denominator:int ):
     time_signature_last_position    = ticks
     last_time_signature_num         = numerator
     last_time_signature_denom       = denominator
-    
+
     time_signature_measure.append( time_signature_last_measure)
 pass
 
@@ -67,14 +67,14 @@ def line_groups(inputStr:str):
 pass
 
 def section_read( line_start:int ):
-    
+
     inSection = False
     sectionData = []
-    
+
     sectionName = joule_data.GameDataFile[line_start].strip()[1:-1]
-    
+
     print("Found " + sectionName + "...")
-    
+
     if sectionName in joule_data.GameData["sections"]:
         output_add("issues_critical",f"Duplicate section '{sectionName}' found! This duplicate section will not be processed.")
         return
@@ -82,11 +82,11 @@ def section_read( line_start:int ):
     lineIndex = line_start
 
     for i in range(lineIndex, len(joule_data.GameDataFile)):
-        
+
         line = joule_data.GameDataFile[i]
-        
+
         if line.strip().startswith("{") or '[' in line:
-            
+
             if inSection == True:
                 print(f"Error! Section '{sectionName}' ends early at line {i+1}!")
                 return
@@ -118,7 +118,7 @@ def initialize_band():
     global last_time_signature_denom
 
     base = get_source_data()
-    
+
     notesname_instruments_array = base.notesname_instruments_array
     notename_array = base.notename_array
     diff_array = base.diff_array
@@ -126,13 +126,13 @@ def initialize_band():
 
     # If we are working with these games they use MIDI for their notes,
     # so we want to process that.
-    
+
     if joule_data.GameDataFileType == "MIDI":
-        
+
         joule_data.TicksPerBeat = joule_data.GameDataFile.ticks_per_beat # type: ignore
 
         output_add("debug_1",f"ticksPerBeat: {joule_data.TicksPerBeat}")
-        
+
         # Rock Band expects 480 ticks per QN.
         # This should not have made it through Magma, but just in case.
         if joule_data.GameSource == "rb3" or "rb2":
@@ -162,7 +162,7 @@ def initialize_band():
                 else:
                     joule_data.TracksFound.append(track.name)
                 pass
-            
+
                 _tempName = notesname_instruments_array[track.name]
 
                 _unknownNotesSeen = []
@@ -173,14 +173,14 @@ def initialize_band():
 
                     if msg.type == 'note_on':
                         if msg.note in notename_array[_tempName]:
-                            
+
                             # Oynx doesn't do Off Notes, and instead does this.
                             if msg.velocity == 0:
                                 trackNotesOff[track.name,notename_array[_tempName][msg.note],trackTime] = True
                             else:
                                 trackNotesOn[track.name,notename_array[_tempName][msg.note],trackTime] = True
                             pass
-                            
+
                             output_add("debug_4",f"{track.name} | {notename_array[_tempName][msg.note]} | {trackTime}")
                         else:
                             output_add("issues_critical",f"{track.name} | Unknown MIDI Note '{str(msg.note)}' found!")
@@ -197,7 +197,7 @@ def initialize_band():
                                 output_add("issues_critical",f"{track.name} | Unknown MIDI Note Off '{str(msg.note)}' found!")
                             pass
 
-                            trackNotesOff[track.name,str(msg.note),trackTime] = True    
+                            trackNotesOff[track.name,str(msg.note),trackTime] = True
                         pass
 
                     elif msg.type == 'text':
@@ -226,142 +226,146 @@ def initialize_band():
                     if msg.type == 'set_tempo':
                         trackNotesMeta["meta","tempo",trackTime] = msg.tempo
                     pass
-                    
+
                 pass
             pass
         pass
     pass
 
     if joule_data.GameDataFileType == "CHART":
-        
+
         notename_chart_notes = base.notename_chart_notes
         notename_chart_phrase = base.notename_chart_phrase
-        
+
         # Parse the .chart, obtain all the section data.
         for i in range(0, len(joule_data.GameDataFile)):
-            
+
             line = joule_data.GameDataFile[i]
-            
+
             # We don't want zero width spaces here. Get rid of them.
             if chr(65279) in line:
                 joule_data.GameDataFile[i] = line.replace(chr(65279), '')
                 line = joule_data.GameDataFile[i]
-                
+
             # If we find a section, read the info.
             if line.strip().startswith("["):
                 section_read(i)
             pass
         pass
-            
+
         # Translate the chart into our format for processing.
-        
+
         # First we need the notes per tick that this file uses,
         # so we grab that from the Song section.
         _songData = joule_data.GameData["sections"]["Song"]
-        
+
         joule_data.TicksPerBeat = 192
-        
+
         for line in _songData:
             _tempGroup = line_groups(line)
             if _tempGroup[0] == "Resolution":
                 joule_data.TicksPerBeat = int(_tempGroup[1])
             pass
         pass
-    
+
         # Instrument Processing
         for i, track in enumerate(joule_data.GameData["sections"]):
 
             diff_keys   = list(diff_array.keys())
             diff_values = list(diff_array.values())
-            
+
             part_name = ""
-            
+
             for line in joule_data.GameData["sections"][track]:
                 lineGroups = line_groups(line)
-                
+
                 lineKey     = lineGroups[0]
                 lineValue   = lineGroups[1]
-                
+
                 if track == "SyncTrack":
                     _tempData = lineValue.split(" ")
 
                     noteType    = _tempData[0]
                     noteValue   = _tempData[1]
-                    
+
                     match noteType:
                         case "A":
                             output_add("debug_1",f"{track} | {lineKey} | Tempo position anchors are not supported.")
                         case "B":
                             trackNotesMeta["meta","tempo",int(lineKey)] = (int(noteValue) / 1000)
                         case "TS":
-                            
+
                             num = int(noteValue)
-                            
+
                             if len(_tempData) == 3:
                                 den = int(_tempData[2])
                             else:
                                 den = 2
                             pass
-                        
-                            # Time Signatures in .chart use an exponent for the denominator. 
+
+                            # Time Signatures in .chart use an exponent for the denominator.
                             process_time_signature( int(lineKey), num, (2 ** den) )
-                            
+
                         case _:
                             output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
                     pass
-  
+
                 for i, diff_name in enumerate(diff_values):
                     diff = diff_keys[i]
-                    
+
                     if track.startswith(diff_name):
                         part_name = track.replace(diff_name, "")
-                    
+
                         if part_name in notesname_instruments_array:
                             if part_name not in joule_data.TracksFound:
                                 joule_data.TracksFound.append(part_name)
                             pass
-                        
+
                             # Store the type of instrument we are, for example "5LANE".
                             _tempName = notesname_instruments_array[part_name]
-                                
+
                             _tempData = lineValue.split(" ")
-                            
+
                             noteType    = _tempData[0]
                             noteValue   = _tempData[1]
-                            
+
                             if noteType == "N" or noteType == "S":
-                                
+
                                 if len(_tempData) != 3:
                                     output_add("issues_critical",f"{track} | {lineKey} | Invalid Note found!")
                                     continue
-                                
+
                                 noteValue   = int(noteValue)
                                 noteLength  = int(_tempData[2])
-                                
+
+                                # We don't want 0 length notes here,
+                                # overriding it to 1 should be fine.
+                                noteLength  = max(noteLength, 1)
+
                                 # Get the note names depending on the note type.
                                 if noteType == "N":
                                     notenames = notename_chart_notes
                                 if noteType == "S":
                                     notenames = notename_chart_phrase
-                                
-                                
+
+
                                 if noteValue in notenames[_tempName]:
-                                    
+
                                     noteName = notenames[_tempName][noteValue]
-                                    
+
                                     # If it is an played note, we give it a difficulty.
                                     if noteType == "N":
                                         noteName = f"{diff}_{noteName}"
                                     pass
-                                    
+
                                     trackNotesOn[part_name, noteName, int(lineKey)] = True
                                     trackNotesOff[part_name, noteName, int(lineKey) + noteLength] = True
-                                    
+
                                 else:
                                     # Yes, this error outputs in tick time.
                                     output_add("issues_critical",f"{track} | {lineKey} | Unknown Note '{str(noteValue)}' found!")
                                 pass
-                                
+
                             elif noteType == "E":
                                 match noteValue:
                                     case "solo":
@@ -373,7 +377,7 @@ def initialize_band():
                             else:
                                 output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
                             pass
-                        pass    
+                        pass
                     pass
                 pass
             pass
@@ -389,7 +393,7 @@ def initialize_band():
     #print(trackNotesLyrics)
     #print ("========================================")
     #print(trackNotesMeta)
-    
+
     output_add("debug_4",f"{trackNotesOn}")
     output_add("debug_4",f"{trackNotesOff}")
     output_add("debug_4",f"{trackNotesLyrics}")
@@ -424,13 +428,13 @@ def process_lyrics():
         pass
 
         phraseText             = ""
-        
+
         for note in filter(lambda x:x >= item and x < indexesVocalsOff[index], indexesVocalsLyrics):
             tempText:str = joule_data.GameData["trackNotesLyrics"]["PART VOCALS","lyrics",note]
 
             tempText = tempText.replace("^","")
             tempText = tempText.replace("#","")
-            
+
             if tempText == "+":
                 continue
 
@@ -446,7 +450,7 @@ def process_lyrics():
         output_add("lyrics", phraseText.strip())
 
     pass
- 
+
     joule_data.GameData["phrases"] = phrases
 
     return
@@ -472,10 +476,10 @@ def process_events():
             pass
 
             _tempEvent = f"{format_location(i)}: {_event}"
-            
+
             events.append(_tempEvent)
             output_add("events", _tempEvent)
-            
+
         pass
 
     pass
@@ -484,6 +488,3 @@ def process_events():
 
     return
 pass
-
-
-

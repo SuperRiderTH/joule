@@ -22,7 +22,5 @@ Example: `joule_run("D:\RockBandJunk\song.mid", "rb3")`
 * Phase Shift: `ps`
 * Yet Another Rhythm Game: `yarg`
   * Missing True Drums support.
-
-## Preliminary Support:
 * Clone Hero: `ch`
-  * .chart parsing needs to be implemented, RBN checks will be mostly used.
+  * Missing 6 Lane support.

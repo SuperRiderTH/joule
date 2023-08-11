@@ -291,7 +291,8 @@ def initialize_band():
                     _tempLine = _tempLine.lstrip("lyrics")
                     _tempLine = _tempLine.strip()
 
-                    # We are creating artificial notes for vocals for displaying lyrics.
+                    # We are creating artificial notes for vocals to display lyrics.
+                    # .chart doesn't support Vocals, so we are okay to do this.
                     trackNotesLyrics["PART VOCALS","lyrics",int(lineKey)] = _tempLine
                     trackNotesOn["PART VOCALS", "note_c1", int(lineKey)] = True
                     trackNotesOff["PART VOCALS", "note_c1", int(lineKey) + 1] = True
@@ -306,13 +307,14 @@ def initialize_band():
                     output_add("issues_critical", f"Events | {lineKey} | Unknown Event '{lineValue}' found!")
 
             else:
-                pass
+                output_add("issues_critical", f"Events | {lineKey} | Unknown Event '{lineValue}' found!")
             pass
         pass
 
         # Instrument Processing
         for i, track in enumerate(joule_data.GameData["sections"]):
 
+            # We need both the full name, and single letter for the difficulties.
             diff_keys   = list(diff_array.keys())
             diff_values = list(diff_array.values())
 
@@ -332,6 +334,7 @@ def initialize_band():
 
                     match noteType:
                         case "A":
+                            # Tempo anchors are not necessary for gameplay, and is just used for chart editing.
                             output_add("debug_1",f"{track} | {lineKey} | Tempo position anchors are not supported.")
                         case "B":
                             trackNotesMeta["meta","tempo",int(lineKey)] = (int(noteValue) / 1000)
@@ -339,6 +342,7 @@ def initialize_band():
 
                             num = int(noteValue)
 
+                            # The default denominator is "2", but check if there is one specified.
                             if len(_tempData) == 3:
                                 den = int(_tempData[2])
                             else:
@@ -352,12 +356,14 @@ def initialize_band():
                             output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
                     pass
 
+                # We start reading with difficulties, because that is how they start.
                 for i, diff_name in enumerate(diff_values):
                     diff = diff_keys[i]
 
                     if track.startswith(diff_name):
                         part_name = track.replace(diff_name, "")
 
+                        # We can have duplicates now, unlike in MIDI checking.
                         if part_name in notesname_instruments_array:
                             if part_name not in joule_data.TracksFound:
                                 joule_data.TracksFound.append(part_name)
@@ -371,6 +377,7 @@ def initialize_band():
                             noteType    = _tempData[0]
                             noteValue   = _tempData[1]
 
+                            # Note and Special Phrase checking
                             if noteType == "N" or noteType == "S":
 
                                 if len(_tempData) != 3:
@@ -408,6 +415,7 @@ def initialize_band():
                                     output_add("issues_critical",f"{track} | {lineKey} | Unknown Note '{str(noteValue)}' found!")
                                 pass
 
+                            # Events in instruments
                             elif noteType == "E":
                                 match noteValue:
                                     case "solo":
@@ -471,6 +479,7 @@ def process_lyrics():
 
         phraseText             = ""
 
+        # Pull out the vocal notes inbetween the start and end of Phrases.
         for note in filter(lambda x:x >= item and x < indexesVocalsOff[index], indexesVocalsLyrics):
             tempText:str = joule_data.GameData["trackNotesLyrics"]["PART VOCALS","lyrics",note]
 

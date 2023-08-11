@@ -12,9 +12,9 @@ indexesVocalPhrasesOn_HARM2 = []
 indexesVocalPhrasesOff_HARM2 = []
 
 
-def get_source_data():
+def set_source_data():
 
-    global notesname_array
+    global notename_array
     global notes_pads
     global notes_drum
     global notes_lane
@@ -26,16 +26,9 @@ def get_source_data():
     global notesname_instruments_array
     global span_limit_keys_pro
     
-    if joule_data.GameSource in joule_data.GameSourceRBLike:
-        base = joule_data_rockband
-    
-    if joule_data.GameSource == "ch":
-        base = joule_data_clonehero
-    
-    if joule_data.GameSource == "yarg":
-        base = joule_data_yarg
+    base = get_source_data()
 
-    notesname_array = base.notesname_array
+    notename_array = base.notename_array
     notes_pads = base.notes_pads
     notes_drum = base.notes_drum
     notes_lane = base.notes_lane
@@ -55,7 +48,7 @@ pass
 
 # template function
 def validate_THING(partname:str):
-    get_source_data()
+    set_source_data()
 
     for diff in diff_array:
         print(f"Processsing THING for {partname} on {diff_array[diff]}...")
@@ -73,11 +66,11 @@ def validate_spacing(partname:str):
 pass
 
 def validate_spacing_vocals(partname:str):
-    get_source_data()
+    set_source_data()
 
-    global notesname_array
+    global notename_array
 
-    noteLength64 = joule_data.gameDataFile.ticks_per_beat / 16
+    noteLength64 = joule_data.GameDataFile.ticks_per_beat / 16
     noteLength32 = noteLength64 * 2
     noteLength16 = noteLength64 * 4
 
@@ -159,7 +152,7 @@ def validate_spacing_vocals(partname:str):
 pass
 
 def rbn_hopos(partname:str):
-    get_source_data()
+    set_source_data()
     
     if joule_data.LowerHOPOsAllowed:
         return
@@ -194,7 +187,7 @@ pass
 
 def rbn_vocals_lyrics(partname:str):
     print(f"Processsing Lyrics for {partname}...")
-    get_source_data()
+    set_source_data()
 
     global indexesVocalPhrasesOn_HARM2
     global indexesVocalPhrasesOff_HARM2
@@ -320,7 +313,7 @@ def rbn_vocals_lyrics(partname:str):
 pass
 
 def rbn_guitar_chords(partname:str):
-    get_source_data()
+    set_source_data()
 
     notesOn = {}
     notesOff = {}
@@ -335,21 +328,24 @@ def rbn_guitar_chords(partname:str):
     # ========================================
     
     for diff in diff_array:
+        
+        notesOnDiff[diff] = {}
+        notesOffDiff[diff] = {}
+        notesAllDiff[diff] = {}
 
         for note in notes_lane:
-            notesOnDiff[diff] = {}
-            notesOffDiff[diff] = {}
-            notesAllDiff[diff] = {}
-
             notesOnDiff[diff].update( { f"{note}" : get_data_indexes("trackNotesOn",partname,f"{diff}_{note}") } )
             notesOffDiff[diff].update( { f"{note}" : get_data_indexes("trackNotesOff",partname,f"{diff}_{note}") } )
             notesAllDiff[diff] = sorted(set( get_data_indexes("trackNotesOn",partname,f"{diff}") + get_data_indexes("trackNotesOff",partname,f"{diff}") ))
-        pass
-        
+        pass    
     pass
 
-
     for diff in diff_array:
+        
+        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) == 0:
+            output_add("debug_3", f"{partname} | rbn_guitar_chords | No notes found on {diff_array[diff]}.")
+            continue
+
         print(f"Processsing chords for {partname} on {diff_array[diff]}...")
 
         notesOn      = notesOnDiff[diff]
@@ -357,10 +353,6 @@ def rbn_guitar_chords(partname:str):
 
         # notesAll is a list of every position where there is a note on and off, without any duplicates.
         notesAll      = notesAllDiff[diff]
-
-        for note in notes_lane:
-            notesOn.update( { f"{note}" : get_data_indexes("trackNotesOn",partname,f"{diff}_{note}") } )
-            notesOff.update( { f"{note}" : get_data_indexes("trackNotesOff",partname,f"{diff}_{note}") } )
 
 
         # Green Orange chord detection
@@ -424,10 +416,14 @@ pass
 
 
 def rbn_drums_limbs(partname:str):
-    get_source_data()
+    set_source_data()
         
 
     for diff in diff_array:
+        
+        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) == 0:
+            output_add("debug_3", f"{partname} | rbn_drums_limbs | No notes found on {diff_array[diff]}.")
+            continue
 
         print(f"Processsing limbs for {partname} on {diff_array[diff]}...")
 
@@ -500,7 +496,7 @@ def rbn_drums_limbs(partname:str):
 pass
 
 def rbn_drums_fills(partname:str):
-    get_source_data()
+    set_source_data()
 
     print(f"Processsing fills for {partname}...")
 
@@ -613,7 +609,7 @@ pass
 
 # template function
 def validate_instrument_phrases():
-    get_source_data()
+    set_source_data()
 
     notesOn         = {}
     notesOff        = {}
@@ -652,6 +648,20 @@ def validate_instrument_phrases():
         for track in noteCheck:
             print(f"Checking {noteType} for {track}...")
             for diff in diff_array:
+                
+                if track.startswith("PART REAL_KEYS"):
+                    _tempCheck = "note"
+                else:
+                    _tempCheck = diff
+                pass
+                
+                if len( get_data_indexes( "trackNotesOn", track, _tempCheck ) ) == 0:
+                    output_add("debug_3", f"{track} | validate_instrument_phrases | No notes found on {diff_array[diff]}.")
+                    
+                    if joule_data.GameSource in joule_data.GameSourceRBLike and joule_data.GameSource != "yarg":
+                        output_add("issues_critical", f"{track} | No notes found on {diff_array[diff]}.")
+                    
+                    continue
                 
                 if notesname_instruments_array[track] == "PROKEYS":
                     
@@ -721,7 +731,7 @@ pass
 
 
 def rbn_broken_chords(partname:str, diff:str):
-    get_source_data()
+    set_source_data()
     
     notesOn       = {}
     notesOff      = {}
@@ -735,7 +745,7 @@ def rbn_broken_chords(partname:str, diff:str):
     brokenChordsAllowed = False
 
     if joule_data.BrokenChordsAllowed\
-    or partname == "PART KEYS":
+    or partname in ("PART KEYS", "Keyboard"):
         brokenChordsAllowed = True
     pass
 
@@ -813,7 +823,7 @@ def rbn_broken_chords(partname:str, diff:str):
 pass
 
 def rbn_keys_real_chords(partname:str):
-    get_source_data()
+    set_source_data()
     
     print(f"Processsing chords for {partname}...")
 
@@ -853,11 +863,11 @@ def rbn_keys_real_chords(partname:str):
     # Gather the notes for checking.
     
     for noteCheck in range(48,73):
-        tempNotesOn = ( get_data_indexes("trackNotesOn", partname, notesname_array[noteNames][noteCheck]) )
-        tempNotesOff = ( get_data_indexes("trackNotesOff", partname, notesname_array[noteNames][noteCheck]) )
+        tempNotesOn = ( get_data_indexes("trackNotesOn", partname, notename_array[noteNames][noteCheck]) )
+        tempNotesOff = ( get_data_indexes("trackNotesOff", partname, notename_array[noteNames][noteCheck]) )
         
-        notesOn.update( { f"{notesname_array[noteNames][noteCheck]}" : tempNotesOn } )
-        notesOff.update( { f"{notesname_array[noteNames][noteCheck]}" : tempNotesOff } )
+        notesOn.update( { f"{notename_array[noteNames][noteCheck]}" : tempNotesOn } )
+        notesOff.update( { f"{notename_array[noteNames][noteCheck]}" : tempNotesOff } )
         
         notesOn["notes"] += tempNotesOn
         notesOff["notes"] += tempNotesOff
@@ -919,7 +929,7 @@ def rbn_keys_real_chords(partname:str):
             pass
         
             for noteCheck in range(48,73):
-                if note in notesOn[notesname_array[noteNames][noteCheck]]:
+                if note in notesOn[notename_array[noteNames][noteCheck]]:
                     if (chordLowest > noteCheck):
                         chordLowest = noteCheck
                     pass
@@ -928,7 +938,7 @@ def rbn_keys_real_chords(partname:str):
                         chordHighest = noteCheck
                     pass
                 
-                    _tempStr = f"{partname} | {format_location(note)} | {currentRange}:{currentRange + 16} | {noteCheck} | {notesname_array[noteNames][noteCheck]}"
+                    _tempStr = f"{partname} | {format_location(note)} | {currentRange}:{currentRange + 16} | {noteCheck} | {notename_array[noteNames][noteCheck]}"
                 
                     if ( noteCheck < currentRange or noteCheck > ( currentRange + 16) ):
                         _tempStr += " | Outside Range"

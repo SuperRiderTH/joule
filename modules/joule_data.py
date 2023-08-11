@@ -1,15 +1,16 @@
 # This file is for storing variables that will be used everywhere.
 
-MajorVersion   = 0
-MinorVersion   = 15
-PatchVersion   = 1
+MajorVersion    = 0
+MinorVersion    = 17
+PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
 
 # Verbosity of the debug output.
-Debug           = 2
+Debug           = 3
 
-gameDataFile    = None
+GameDataFile        = None
+GameDataFileType    = "NONE"
 
 GameData        = {}
 GameDataOutput  = {"issues_critical":{},"issues_major":{},"issues_minor":{},}
@@ -27,8 +28,8 @@ GameSourceList = {
 }
 
 # Band Specific variables.
-NoteTime       = 0
-TracksFound    = []
+TracksFound     = []
+TicksPerBeat    = 480
 
 GameSourceRBLike = {
     "rb3",

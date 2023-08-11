@@ -2,7 +2,7 @@
 
 MajorVersion    = 0
 MinorVersion    = 17
-PatchVersion    = 0
+PatchVersion    = 4
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
 

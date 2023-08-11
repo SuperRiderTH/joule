@@ -482,25 +482,27 @@ def process_lyrics():
         phraseText             = ""
 
         # Pull out the vocal notes inbetween the start and end of Phrases.
-        for note in filter(lambda x:x >= item and x < indexesVocalsOff[index], indexesVocalsLyrics):
-            tempText:str = joule_data.GameData["trackNotesLyrics"]["PART VOCALS","lyrics",note]
+        if index < len(indexesVocalsOff):
+            for note in filter(lambda x:x >= item and x < indexesVocalsOff[index], indexesVocalsLyrics):
+                tempText:str = joule_data.GameData["trackNotesLyrics"]["PART VOCALS","lyrics",note]
 
-            tempText = tempText.replace("^","")
-            tempText = tempText.replace("#","")
+                tempText = tempText.replace("^","")
+                tempText = tempText.replace("#","")
 
-            if tempText == "+":
-                continue
+                if tempText == "+":
+                    continue
 
-            if tempText.endswith("-") or tempText.endswith("="):
-                tempText = tempText[:-1]
-            else:
-                tempText += " "
+                if tempText.endswith("-") or tempText.endswith("="):
+                    tempText = tempText[:-1]
+                else:
+                    tempText += " "
 
-            phraseText += tempText
-        pass
+                phraseText += tempText
+            pass
 
-        phrases.append(phraseText.strip())
-        output_add("lyrics", phraseText.strip())
+            phrases.append(phraseText.strip())
+            output_add("lyrics", phraseText.strip())
+            print(phraseText.strip())
 
     pass
 

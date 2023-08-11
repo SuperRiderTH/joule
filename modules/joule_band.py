@@ -502,7 +502,7 @@ def process_lyrics():
 
             phrases.append(phraseText.strip())
             output_add("lyrics", phraseText.strip())
-            print(phraseText.strip())
+            #print(phraseText.strip())
 
     pass
 

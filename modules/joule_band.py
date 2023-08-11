@@ -268,6 +268,48 @@ def initialize_band():
             pass
         pass
 
+        # Events parsing
+        _songData = joule_data.GameData["sections"]["Events"]
+
+        for line in _songData:
+            lineGroups = line_groups(line)
+
+            lineKey     = lineGroups[0]
+            lineValue   = lineGroups[1]
+
+            if lineValue.startswith("E"):
+                _tempLine = lineValue.lstrip("E")
+                _tempLine = _tempLine.strip()
+                _tempLine = _tempLine.strip("\"")
+
+                if _tempLine.startswith("section"):
+                    _tempLine = _tempLine.lstrip("section")
+                    _tempLine = _tempLine.strip()
+                    trackNotesMeta["meta","events",int(lineKey)] = _tempLine
+
+                elif _tempLine.startswith("lyric"):
+                    _tempLine = _tempLine.lstrip("lyrics")
+                    _tempLine = _tempLine.strip()
+
+                    # We are creating artificial notes for vocals for displaying lyrics.
+                    trackNotesLyrics["PART VOCALS","lyrics",int(lineKey)] = _tempLine
+                    trackNotesOn["PART VOCALS", "note_c1", int(lineKey)] = True
+                    trackNotesOff["PART VOCALS", "note_c1", int(lineKey) + 1] = True
+
+                elif _tempLine.startswith("phrase_start"):
+                    trackNotesOn["PART VOCALS", "phrase_p1", int(lineKey)] = True
+
+                elif _tempLine.startswith("phrase_end"):
+                    trackNotesOff["PART VOCALS", "phrase_p1", int(lineKey)] = True
+
+                else:
+                    output_add("issues_critical", f"Events | {lineKey} | Unknown Event '{lineValue}' found!")
+
+            else:
+                pass
+            pass
+        pass
+
         # Instrument Processing
         for i, track in enumerate(joule_data.GameData["sections"]):
 

@@ -139,7 +139,7 @@ def joule_run(gameDataLocation:str, gameSource:str):
 
             for part in joule_data.TracksFound:
 
-                if part in ( "PART DRUMS", "PART DRUMS_2X"):
+                if part in ( "PART DRUMS", "PART DRUMS_2X", "Drums"):
                     rbn_drums_limbs(part)
                     rbn_drums_fills(part)
                 pass

@@ -304,7 +304,7 @@ def initialize_band():
                     trackNotesOff["PART VOCALS", "phrase_p1", int(lineKey)] = True
 
                 else:
-                    output_add("issues_critical", f"Events | {lineKey} | Unknown Event '{lineValue}' found!")
+                    trackNotesMeta["meta","events",int(lineKey)] = _tempLine
 
             else:
                 output_add("issues_critical", f"Events | {lineKey} | Unknown Event '{lineValue}' found!")
@@ -422,6 +422,8 @@ def initialize_band():
                                         trackNotesOn[part_name, "solo", int(lineKey)] = True
                                     case "soloend":
                                         trackNotesOff[part_name, "solo", int(lineKey)] = True
+                                    case "end":
+                                        pass
                                     case _:
                                         output_add("issues_critical",f"{track} | {lineKey} | Unknown Event '{str(noteValue)}' found!")
                             else:

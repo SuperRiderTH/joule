@@ -85,7 +85,7 @@ def section_read( line_start:int ):
 
         line = joule_data.GameDataFile[i]
 
-        if line.strip().startswith("{") or '[' in line:
+        if line.strip().startswith("{") or line.strip().startswith('['):
 
             if inSection == True:
                 print(f"Error! Section '{sectionName}' ends early at line {i+1}!")
@@ -425,7 +425,7 @@ def initialize_band():
                                     case "end":
                                         pass
                                     case _:
-                                        output_add("issues_critical",f"{track} | {lineKey} | Unknown Event '{str(noteValue)}' found!")
+                                        trackNotesMeta[part_name,"text",int(lineKey)] = noteValue
                             else:
                                 output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
                             pass
@@ -526,6 +526,28 @@ def process_events():
 
             if _event in joule_data_rockband.event_friendly_list:
                 _event = joule_data_rockband.event_friendly_list[_event]
+            else:
+
+                # We are doing a quick check to see if anyone is using
+                # Rock Band style events, just not in brackets.
+                _tempEventCheck = f"[{_event}]"
+
+                if _tempEventCheck in joule_data_rockband.events_ignore_list:
+                    continue
+
+                if _tempEventCheck in joule_data_rockband.event_friendly_list:
+                    _event = joule_data_rockband.event_friendly_list[_tempEventCheck]
+                pass
+
+                _tempEventCheck = f"[prc_{_event}]"
+
+                if _tempEventCheck in joule_data_rockband.events_ignore_list:
+                    continue
+
+                if _tempEventCheck in joule_data_rockband.event_friendly_list:
+                    _event = joule_data_rockband.event_friendly_list[_tempEventCheck]
+                pass
+
             pass
 
             _tempEvent = f"{format_location(i)}: {_event}"

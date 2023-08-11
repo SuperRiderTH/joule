@@ -25,7 +25,7 @@ def set_source_data():
     global note_overdrive
     global notesname_instruments_array
     global span_limit_keys_pro
-    
+
     base = get_source_data()
 
     notename_array = base.notename_array
@@ -60,7 +60,7 @@ def validate_spacing(partname:str):
 
     if notesname_instruments_array[partname] == "VOCALS":
         validate_spacing_vocals(partname)
-        
+
     # TODO: Other instruments.
 
 pass
@@ -153,11 +153,11 @@ pass
 
 def rbn_hopos(partname:str):
     set_source_data()
-    
+
     if joule_data.LowerHOPOsAllowed:
         return
     else:
-        
+
         print(f"Processsing HOPOs for {partname}...")
 
         for diff in diff_array:
@@ -172,10 +172,10 @@ def rbn_hopos(partname:str):
 pass
 
 def tow_check():
-    
+
     phrasesP1 = get_data_indexes("trackNotesOn", "PART VOCALS", 'phrase_p1')
     phrasesP2 = get_data_indexes("trackNotesOn", "PART VOCALS", 'phrase_p2')
-    
+
     if len(phrasesP2) > 0:
         if len(phrasesP1) != len(phrasesP2):
             output_add("issues_major", f"PART VOCALS | Player 1 and 2 do not have an equal amount of Tug of War Markers.")
@@ -226,7 +226,7 @@ def rbn_vocals_lyrics(partname:str):
         ',' : "Commas",
         '"': "Quotation marks",
         }
-  
+
 
     for index, item in enumerate(indexesVocalPhrasesOn):
 
@@ -242,7 +242,7 @@ def rbn_vocals_lyrics(partname:str):
 
         # Check every lyric inside the Phrase Markers.
         for note in filter(lambda x:x >= item and x <= indexesVocalPhrasesOff[index], indexesVocalsLyrics):
-            
+
             syllable:str = joule_data.GameData["trackNotesLyrics"][partname,"lyrics",note]
             syllableRaw = syllable
 
@@ -265,7 +265,7 @@ def rbn_vocals_lyrics(partname:str):
                 pass
             pass
 
-            # Strip game characters out of the syllable 
+            # Strip game characters out of the syllable
             syllable = ''.join(x for x in syllable if not x in gameCharactersToRemove)
 
             # We are ignoring this symbol if it is used to start the syllable.
@@ -323,12 +323,12 @@ def rbn_guitar_chords(partname:str):
     notesAllDiff = {}
 
     notesOnHighest = sorted( set( get_data_indexes("trackNotesOn",partname,f"{diff_highest}") ) )
-    
+
     # Init the notes for each difficulty.
     # ========================================
-    
+
     for diff in diff_array:
-        
+
         notesOnDiff[diff] = {}
         notesOffDiff[diff] = {}
         notesAllDiff[diff] = {}
@@ -337,11 +337,11 @@ def rbn_guitar_chords(partname:str):
             notesOnDiff[diff].update( { f"{note}" : get_data_indexes("trackNotesOn",partname,f"{diff}_{note}") } )
             notesOffDiff[diff].update( { f"{note}" : get_data_indexes("trackNotesOff",partname,f"{diff}_{note}") } )
             notesAllDiff[diff] = sorted(set( get_data_indexes("trackNotesOn",partname,f"{diff}") + get_data_indexes("trackNotesOff",partname,f"{diff}") ))
-        pass    
+        pass
     pass
 
     for diff in diff_array:
-        
+
         if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) == 0:
             output_add("debug_3", f"{partname} | rbn_guitar_chords | No notes found on {diff_array[diff]}.")
             continue
@@ -384,7 +384,7 @@ def rbn_guitar_chords(partname:str):
             for noteLane in notes_lane:
                 if note in notesOn[noteLane]:
                     noteCount += 1
-            
+
             # If there isn't any notes here, skip the rest.
             if noteCount == 0:
                 continue
@@ -407,7 +407,7 @@ def rbn_guitar_chords(partname:str):
                             output_add("issues_major", f"{partname} | {format_location(note)} | Single note found on {diff_array[diff]}, expected a chord based on {diff_array[diff_highest]}.")
                         pass
                     pass
-                pass 
+                pass
             pass
 
     return
@@ -417,10 +417,10 @@ pass
 
 def rbn_drums_limbs(partname:str):
     set_source_data()
-        
+
 
     for diff in diff_array:
-        
+
         if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) == 0:
             output_add("debug_3", f"{partname} | rbn_drums_limbs | No notes found on {diff_array[diff]}.")
             continue
@@ -452,11 +452,11 @@ def rbn_drums_limbs(partname:str):
 
 
         for note in notesAll:
-            
+
             if note in notesOff["pads"]:
                 armsUsed -= notesOff["pads"].count(note)
             pass
-            
+
             if note in notesOn["pads"]:
                 armsUsed += notesOn["pads"].count(note)
 
@@ -465,9 +465,9 @@ def rbn_drums_limbs(partname:str):
                 pass
             pass
 
-            
+
         pass
-            
+
 
 
         # Kick checking
@@ -511,13 +511,13 @@ def rbn_drums_fills(partname:str):
 
     soloStart = get_data_indexes("trackNotesOn",partname,"solo")
     soloEnd =  get_data_indexes("trackNotesOff",partname,"solo")
-    
+
     rollStart = get_data_indexes("trackNotesOn",partname,"roll")
     rollEnd =  get_data_indexes("trackNotesOff",partname,"roll")
-    
+
     rollSingleStart = get_data_indexes("trackNotesOn",partname,"roll_single")
     rollSingleEnd = get_data_indexes("trackNotesOff",partname,"roll_single")
-    
+
     rollSwellStart = get_data_indexes("trackNotesOn",partname,"roll_swell")
     rollSwellEnd = get_data_indexes("trackNotesOff",partname,"roll_swell")
 
@@ -532,7 +532,7 @@ def rbn_drums_fills(partname:str):
 
 
     for index, item in enumerate(fillStart):
-        
+
         for od_note in filter(lambda x:x >= item and x <= fillEnd[index], overdriveStart + overdriveEnd):
 
             if od_note == fillEnd[index]:
@@ -543,17 +543,19 @@ def rbn_drums_fills(partname:str):
                 output_add("issues_critical",f"{partname} | {format_location(od_note)} | Overdrive overlaps Drum Fill {index+1}.")
             pass
 
-        if fillStartAll.count(fillStart[index]) != 5:
-            output_add("issues_critical",f"{partname} | {format_location(fillStart[index])} | Drum Fill {index+1} notes do not start simultaneously.")
-        pass
+        if joule_data.GameDataFileType != "CHART":
 
-        if fillEndAll.count(fillEnd[index]) != 5:
-            output_add("issues_critical",f"{partname} | {format_location(fillEnd[index])} | Drum Fill {index+1} notes do not end simultaneously.")
-        pass
+            if fillStartAll.count(fillStart[index]) != 5:
+                output_add("issues_critical",f"{partname} | {format_location(fillStart[index])} | Drum Fill {index+1} notes do not start simultaneously.")
+            pass
+
+            if fillEndAll.count(fillEnd[index]) != 5:
+                output_add("issues_critical",f"{partname} | {format_location(fillEnd[index])} | Drum Fill {index+1} notes do not end simultaneously.")
+            pass
 
 
     for note in notesAll:
-        
+
         if note in fillEnd:
             inFill = False
         if note in overdriveEnd:
@@ -564,17 +566,17 @@ def rbn_drums_fills(partname:str):
             inRollSingle = False
         if note in rollSwellEnd:
             inRollSwell = False
-    
+
         if inRollSingle == False and inRollSwell == False:
             inRoll = False
         pass
-    
+
         if inSolo:
             if note in fillStart:
                 output_add("issues_critical",f"{partname} | {format_location(note)} | Drum Fills are not allowed in Solos.")
             pass
         pass
-    
+
         if note in fillStart:
             inFill = True
         if note in overdriveStart:
@@ -586,21 +588,21 @@ def rbn_drums_fills(partname:str):
         if note in rollSwellStart:
             inRollSwell = True
         pass
-    
+
         if inRollSingle == True or inRollSwell == True:
             inRoll = True
         pass
-    
+
         if inRoll and inFill:
             output_add("issues_critical",f"{partname} | {format_location(note)} | Drum Rolls are not allowed in Drum Fills.")
         pass
-    
+
         if note in rollSingleStart or note in rollSwellStart:
             if inRollSingle == True and inRollSwell == True:
                 output_add("issues_critical",f"{partname} | {format_location(note)} | Drum Roll and Swell happening simultaneously.")
             pass
         pass
-    
+
     pass
 
     return
@@ -617,30 +619,30 @@ def validate_instrument_phrases():
 
     noteCheck       = []
     unisonCheck     = []
-    
+
     notesToCheck        = "Solo", "Overdrive"
-    
+
     inSpecialNote       = False
     overdriveCount      = 0
-    
+
     lastNoteStart       = 0
     lastNoteWasCheck    = False
     checkNextNote       = False
-    
+
 
     # Gather tracks for testing.
     for track in joule_data.TracksFound:
-        
+
         if notesname_instruments_array[track] == "5LANES"\
         or notesname_instruments_array[track] == "DRUMS":
             noteCheck.append(track)
             unisonCheck.append(track)
         pass
-    
+
         if notesname_instruments_array[track] == "PROKEYS":
             noteCheck.append(track)
         pass
-    
+
     pass
 
     for noteType in notesToCheck:
@@ -648,77 +650,77 @@ def validate_instrument_phrases():
         for track in noteCheck:
             print(f"Checking {noteType} for {track}...")
             for diff in diff_array:
-                
+
                 if track.startswith("PART REAL_KEYS"):
                     _tempCheck = "note"
                 else:
                     _tempCheck = diff
                 pass
-                
+
                 if len( get_data_indexes( "trackNotesOn", track, _tempCheck ) ) == 0:
                     output_add("debug_3", f"{track} | validate_instrument_phrases | No notes found on {diff_array[diff]}.")
-                    
+
                     if joule_data.GameSource in joule_data.GameSourceRBLike and joule_data.GameSource != "yarg":
                         output_add("issues_critical", f"{track} | No notes found on {diff_array[diff]}.")
-                    
+
                     continue
-                
+
                 if notesname_instruments_array[track] == "PROKEYS":
-                    
+
                     if track != f"PART REAL_KEYS_{diff.capitalize()}":
                         continue
-                    
+
                     notesOn         = get_data_indexes("trackNotesOn",f"PART REAL_KEYS_{diff.capitalize()}","note")
                     notesOff        = get_data_indexes("trackNotesOff",f"PART REAL_KEYS_{diff.capitalize()}","note")
-                    
+
                     checkOn     = get_data_indexes("trackNotesOn","PART REAL_KEYS_X",noteType.lower())
                     checkOff    = get_data_indexes("trackNotesOff","PART REAL_KEYS_X",noteType.lower())
                 else:
                     notesOn         = get_data_indexes("trackNotesOn",track,f"{diff}")
                     notesOff        = get_data_indexes("trackNotesOff",track,f"{diff}")
-                    
+
                     checkOn     = get_data_indexes("trackNotesOn",track,noteType.lower())
                     checkOff    = get_data_indexes("trackNotesOff",track,noteType.lower())
                 pass
-                
-                
-                
+
+
+
                 notesAll = sorted(set(notesOn + notesOff + checkOn + checkOff))
-                
+
                 for note in notesAll:
-                    
+
                     if note in checkOff:
                         inSpecialNote = False
-                        
+
                         if checkNextNote:
                             output_add("issues_critical", f"{track} | {format_location(lastNoteStart)} | No notes in {noteType} Phrase on {diff_array[diff]}.")
                         pass
-                    
+
                     pass
-                    
+
                     if note in checkOn:
                         inSpecialNote = True
                         checkNextNote = True
                         lastNoteStart = note
                     pass
-                    
+
                     if note in notesOn:
-                    
+
                         if checkNextNote:
                             checkNextNote = False
-                            
+
                             if lastNoteWasCheck and inSpecialNote and noteType == "Overdrive":
                                 output_add("issues_critical", f"{track} | {format_location(note)} | Notes are missing on {diff_array[diff]} between two {noteType} Phrases.")
                             pass
                         pass
-                        
-                        
+
+
                         if inSpecialNote:
                             lastNoteWasCheck = True
                         else:
                             lastNoteWasCheck = False
                         pass
-                    
+
                     pass
                 pass
             pass
@@ -732,7 +734,7 @@ pass
 
 def rbn_broken_chords(partname:str, diff:str):
     set_source_data()
-    
+
     notesOn       = {}
     notesOff      = {}
     notesAll      = []
@@ -824,7 +826,7 @@ pass
 
 def rbn_keys_real_chords(partname:str):
     set_source_data()
-    
+
     print(f"Processsing chords for {partname}...")
 
     notesOn       = {}
@@ -836,14 +838,14 @@ def rbn_keys_real_chords(partname:str):
     noteStartTime = 0
     lastReportedTime = 0
     chordHappening = False
-    
+
     chordHighest    = 48
     chordLowest     = 72
-    
+
     currentRange    = 0
-    
+
     noteRangeIndex  = [57,55,53,52,50,48]
-    noteRanges      = [ 
+    noteRanges      = [
         "range_a2_c4",
         "range_g2_b3",
         "range_f2_a3",
@@ -854,21 +856,21 @@ def rbn_keys_real_chords(partname:str):
 
     notesOn.update( { "notes":[] } )
     notesOff.update( { "notes":[] } )
-    
+
     noteNames = notesname_instruments_array[partname]
-    
+
     diff = partname[len(partname)-1].lower()
 
 
     # Gather the notes for checking.
-    
+
     for noteCheck in range(48,73):
         tempNotesOn = ( get_data_indexes("trackNotesOn", partname, notename_array[noteNames][noteCheck]) )
         tempNotesOff = ( get_data_indexes("trackNotesOff", partname, notename_array[noteNames][noteCheck]) )
-        
+
         notesOn.update( { f"{notename_array[noteNames][noteCheck]}" : tempNotesOn } )
         notesOff.update( { f"{notename_array[noteNames][noteCheck]}" : tempNotesOff } )
-        
+
         notesOn["notes"] += tempNotesOn
         notesOff["notes"] += tempNotesOff
     pass
@@ -876,15 +878,15 @@ def rbn_keys_real_chords(partname:str):
     _tempNotesAll = []
 
     for nRange in noteRanges:
-        _tempOn = get_data_indexes("trackNotesOn",partname,f"{nRange}") 
+        _tempOn = get_data_indexes("trackNotesOn",partname,f"{nRange}")
         notesOn.update( { f"{nRange}" : _tempOn } )
-        
+
         _tempNotesAll += _tempOn
-        
+
     pass
 
     _tempNotesAll += notesOn["notes"] + notesOff["notes"]
-    
+
     notesAll = sorted(set( _tempNotesAll ))
 
     # Check the notes.
@@ -894,28 +896,28 @@ def rbn_keys_real_chords(partname:str):
             lanesUsed -= notesOff["notes"].count(note)
 
             if lanesUsed == 0:
-                chordHappening = False                
+                chordHappening = False
                 chordHighest    = 48
                 chordLowest     = 72
             pass
 
         pass
-    
+
         for nRange in noteRanges:
             if note in notesOn[nRange]:
-                
+
                 if diff == "e" or diff == "m":
                     if currentRange != 0:
                         output_add("issues_major", f"{partname} | {format_location(note)} | Lane Shifts are not allowed on {diff_array[diff]}.")
                     pass
                 pass
-            
+
                 currentRange = noteRangeIndex[noteRanges.index(nRange)]
                 output_add("debug_3",f"{partname} | {format_location(note)} | {nRange}")
-                
+
             pass
         pass
-    
+
         if note in notesOn["notes"]:
 
             if lanesUsed == 0:
@@ -927,7 +929,7 @@ def rbn_keys_real_chords(partname:str):
             if lanesUsed > 1:
                 chordHappening = True
             pass
-        
+
             for noteCheck in range(48,73):
                 if note in notesOn[notename_array[noteNames][noteCheck]]:
                     if (chordLowest > noteCheck):
@@ -937,20 +939,20 @@ def rbn_keys_real_chords(partname:str):
                     if chordHighest < noteCheck:
                         chordHighest = noteCheck
                     pass
-                
+
                     _tempStr = f"{partname} | {format_location(note)} | {currentRange}:{currentRange + 16} | {noteCheck} | {notename_array[noteNames][noteCheck]}"
-                
+
                     if ( noteCheck < currentRange or noteCheck > ( currentRange + 16) ):
                         _tempStr += " | Outside Range"
                         output_add("issues_major", f"{partname} | {format_location(noteStartTime)} | Note is outside of Note Range on {diff_array[diff]}.")
                     pass
-                
+
                     output_add("debug_3",_tempStr)
-                    
+
                 pass
-            
+
             pass
-        
+
             if ( chordHighest - chordLowest > ( span_limit_keys_pro[diff] ) ):
                 output_add("issues_major", f"{partname} | {format_location(noteStartTime)} | Found chord spanning more than {span_limit_keys_pro[diff]} notes on {diff_array[diff]}.")
             pass

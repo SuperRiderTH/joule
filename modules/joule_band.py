@@ -456,7 +456,7 @@ def initialize_band():
     joule_data.GameData["trackNotesLyrics"] = trackNotesLyrics
     joule_data.GameData["trackNotesMeta"] = trackNotesMeta
 
-    return
+    return joule_data.GameData
 pass
 
 def process_lyrics():

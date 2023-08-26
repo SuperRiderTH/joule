@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-
 from enum import Enum
 import sys
 import json
+import os
 
 from mido import MidiFile
 
 # Module loading.
-tempDirectory = (str(sys.path[0]) + "/modules")
+tempDirectory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "modules")
 sys.path.insert(1,tempDirectory)
 
 import joule_data
@@ -20,19 +20,51 @@ from joule_band_rbn import *
 __version__ = joule_data.Version
 
 gameDataLocation    = ""
+ignoreChecks        = False
 
 
 # Functions
 # ========================================
 
+def joule_init(gameDataLocation:str, gameSource:str = False):
+    global ignoreChecks
+    ignoreChecks = True
+    return joule_run(gameDataLocation, gameSource)
+pass
 
-def joule_run(gameDataLocation:str, gameSource:str):
+def joule_run(gameDataLocation:str, gameSource:str = False):
+
+    global ignoreChecks
 
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):
             joule_data.GameDataOutput.update( { f"debug_{i+1}":{}, } )
 
-    joule_data.GameSource   = gameSource
+
+    # Set the file type that we are reading.
+    # ========================================
+    
+    if gameDataLocation.endswith(".mid") or gameDataLocation.endswith(".midi"):
+        joule_data.GameDataFileType = "MIDI"
+    elif gameDataLocation.endswith(".chart"):
+        joule_data.GameDataFileType = "CHART"
+    else:
+        joule_data.GameDataFileType = "BINARY"
+    pass
+
+    if gameSource == False:
+        if joule_data.GameDataFileType == "MIDI":
+            print("No Game Source provided, assuming Rock Band 3...")
+            joule_data.GameSource   = "rb3"
+        else:
+            print("No Game Source provided, Joule can not continue.")
+            return False
+        pass
+    else:
+        joule_data.GameSource   = gameSource
+    pass
+
+    
 
     if joule_data.GameSource in joule_data.GameSourceList:
         joule_data.GameSourceFull = joule_data.GameSourceList[joule_data.GameSource]
@@ -70,52 +102,55 @@ def joule_run(gameDataLocation:str, gameSource:str):
         joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )
         
         initTest = initialize_band()
-        
+
         if initTest != False:
-        
             process_lyrics()
             process_events()
-
-            for part in joule_data.TracksFound:
-
-                if part in ( "PART DRUMS", "PART DRUMS_2X"):
-                    rbn_drums_limbs(part)
-                    rbn_drums_fills(part)
-                pass
-
-                if part in ( "PART GUITAR", "PART BASS", "PART RHYTHM"):
-                    rbn_guitar_chords(part)
-                    rbn_hopos(part)
-                pass
-
-                if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
-                    
-                    if part == "PART VOCALS":
-                        tow_check()
-                    pass
-                
-                    rbn_vocals_lyrics(part)
-                    
-                pass
-
-                if part == "PART KEYS":
-                    
-                    rbn_hopos(part)
-                    
-                    for diff in joule_data_rockband.diff_array:
-                        rbn_broken_chords(part,diff)
-                    pass
-                pass
-
-                if part.startswith("PART REAL_KEYS"):
-                    rbn_keys_real_chords(part)
-                    pass
-                pass
-
-                validate_spacing(part)
+        
+            if ignoreChecks == False:
             
-            validate_instrument_phrases()
+                for part in joule_data.TracksFound:
 
+                    if part in ( "PART DRUMS", "PART DRUMS_2X"):
+                        rbn_drums_limbs(part)
+                        rbn_drums_fills(part)
+                    pass
+
+                    if part in ( "PART GUITAR", "PART BASS", "PART RHYTHM"):
+                        rbn_guitar_chords(part)
+                        rbn_hopos(part)
+                    pass
+
+                    if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
+                        
+                        if part == "PART VOCALS":
+                            tow_check()
+                        pass
+                    
+                        rbn_vocals_lyrics(part)
+                        
+                    pass
+
+                    if part == "PART KEYS":
+                        
+                        rbn_hopos(part)
+                        
+                        for diff in joule_data_rockband.diff_array:
+                            rbn_broken_chords(part,diff)
+                        pass
+                    pass
+
+                    if part.startswith("PART REAL_KEYS"):
+                        rbn_keys_real_chords(part)
+                        pass
+                    pass
+
+                    validate_spacing(part)
+                
+                validate_instrument_phrases()
+                
+            pass
+        pass
     elif joule_data.GameSource == "ch":
         
         joule_data.GameData["sections"] = {}
@@ -137,46 +172,48 @@ def joule_run(gameDataLocation:str, gameSource:str):
             process_lyrics()
             process_events()
 
-            for part in joule_data.TracksFound:
+            if ignoreChecks == False:
+                for part in joule_data.TracksFound:
 
-                if part in ( "PART DRUMS", "PART DRUMS_2X", "Drums"):
-                    rbn_drums_limbs(part)
-                    rbn_drums_fills(part)
-                pass
-
-                if part in GuitarTracks:
-                    rbn_guitar_chords(part)
-                    rbn_hopos(part)
-                pass
-
-                if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
-                    
-                    if part == "PART VOCALS":
-                        tow_check()
+                    if part in ( "PART DRUMS", "PART DRUMS_2X", "Drums"):
+                        rbn_drums_limbs(part)
+                        rbn_drums_fills(part)
                     pass
+
+                    if part in GuitarTracks:
+                        rbn_guitar_chords(part)
+                        rbn_hopos(part)
+                    pass
+
+                    if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
+                        
+                        if part == "PART VOCALS":
+                            tow_check()
+                        pass
+                    
+                        rbn_vocals_lyrics(part)
+                        
+                    pass
+
+                    if part in ( "PART KEYS", "Keyboard" ):
+                        
+                        rbn_hopos(part)
+                        
+                        for diff in joule_data_rockband.diff_array:
+                            rbn_broken_chords(part,diff)
+                        pass
+                    pass
+
+                    if part.startswith("PART REAL_KEYS"):
+                        rbn_keys_real_chords(part)
+                        pass
+                    pass
+
+                    validate_spacing(part)
                 
-                    rbn_vocals_lyrics(part)
-                    
-                pass
-
-                if part in ( "PART KEYS", "Keyboard" ):
-                    
-                    rbn_hopos(part)
-                    
-                    for diff in joule_data_rockband.diff_array:
-                        rbn_broken_chords(part,diff)
-                    pass
-                pass
-
-                if part.startswith("PART REAL_KEYS"):
-                    rbn_keys_real_chords(part)
-                    pass
-                pass
-
-                validate_spacing(part)
-            
-            validate_instrument_phrases()
-
+                validate_instrument_phrases()
+            pass
+        pass
     else:
         print ("Invalid game specified!")
         return False
@@ -188,7 +225,7 @@ def joule_run(gameDataLocation:str, gameSource:str):
     with open(gameDataLocation+".json", "w") as write:
         json.dump(joule_data.GameDataOutput, write, indent=4)
 
-    return True
+    return initTest
 pass
 
 
@@ -223,7 +260,7 @@ if __name__ == "__main__":
     # Assume that the game is Rock Band 3 if none is provided.
     # ========================================
     
-    argSource = ""
+    argSource = False
     
     if joule_data.GameDataFileType == "MIDI":
         if len(sys.argv) == 2:
@@ -240,7 +277,7 @@ if __name__ == "__main__":
         pass
     pass
   
-    if argSource != "":
+    if argSource != False:
         joule_run(argLocation, argSource)
 
     print ("========================================")

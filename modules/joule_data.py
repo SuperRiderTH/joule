@@ -1,13 +1,13 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 0
-MinorVersion    = 17
-PatchVersion    = 4
+MinorVersion    = 18
+PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
 
 # Verbosity of the debug output.
-Debug           = 3
+Debug           = 2
 
 GameDataFile        = None
 GameDataFileType    = "NONE"

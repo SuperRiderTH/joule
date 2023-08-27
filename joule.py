@@ -85,6 +85,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         pass
     except OSError:
         print("Unable to read", gameDataLocation)
+        return False
     pass
 
     

@@ -33,19 +33,26 @@ def get_source_data():
 pass
 
 
-def get_data_indexes(type:str, track:str, key:str):
+def get_data_indexes(type:str, track:str, key:str, strict:bool = False):
 
 # This function returns a list of all the valid indexes of the data type you
 # are searching for.
 
 # get_data_indexes("trackNotesOn", 'PART DRUMS', 'x_kick')
+# get_data_indexes("trackNotesOn", 'PART DRUMS', 'x_kick', True)
 
     _tempData = []
 
     for _key in joule_data.GameData[type].keys():
         if str(_key[0]) == track:
-            if _key[1].startswith(key):
-                _tempData.append(_key[2])
+            if strict == True:
+                if _key[1] == (key):
+                    _tempData.append(_key[2])
+                pass
+            else:
+                if _key[1].startswith(key):
+                    _tempData.append(_key[2])
+                pass
             pass
         pass
     pass

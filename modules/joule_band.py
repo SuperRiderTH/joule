@@ -74,6 +74,7 @@ def section_read( line_start:int ):
     sectionName = joule_data.GameDataFile[line_start].strip()[1:-1]
 
     print("Found " + sectionName + "...")
+    joule_data.Tracks.append(sectionName)
 
     if sectionName in joule_data.GameData["sections"]:
         output_add("issues_critical",f"Duplicate section '{sectionName}' found! This duplicate section will not be processed.")
@@ -109,23 +110,24 @@ pass
 
 def initialize_band():
 
-    global notename_array
-    global notesname_instruments_array
+    global notename_array, notesname_instruments_array
 
-    global time_signature_measure
-    global time_signature_time
-    global last_time_signature_num
-    global last_time_signature_denom
+    global time_signature_measure, time_signature_time
+    global time_signature_last_position, time_signature_last_measure
+    global last_time_signature_num, last_time_signature_denom
+
+    global trackNotesOn, trackNotesOff, trackNotesMeta, trackNotesLyrics
+    trackNotesOn, trackNotesOff, trackNotesMeta, trackNotesLyrics = {}, {}, {}, {}
+
+    time_signature_measure, time_signature_time = [], []
+    time_signature_last_position, time_signature_last_measure = 0, 0
+    last_time_signature_num, last_time_signature_denom = 4, 4
 
     base = get_source_data()
 
     notesname_instruments_array = base.notesname_instruments_array
     notename_array = base.notename_array
     diff_array = base.diff_array
-
-
-    # If we are working with these games they use MIDI for their notes,
-    # so we want to process that.
 
     if joule_data.GameDataFileType == "MIDI":
 
@@ -150,10 +152,13 @@ def initialize_band():
 
             print("Found " + track.name + "...")
 
+            joule_data.Tracks.append(track.name)
+
             #for msg in track:
                 #print(msg)
 
             # Instrument Processing
+            # TODO: Cleanup and de-duplicate code.
             if track.name in notesname_instruments_array:
 
                 if track.name in joule_data.TracksFound:
@@ -184,7 +189,13 @@ def initialize_band():
                             output_add("debug_4",f"{track.name} | {notename_array[_tempName][msg.note]} | {trackTime}")
                         else:
                             output_add("issues_critical",f"{track.name} | Unknown MIDI Note '{str(msg.note)}' found!")
-                            trackNotesOn[track.name,str(msg.note),trackTime] = True
+
+                            if msg.velocity == 0:
+                                trackNotesOff[track.name,str(msg.note),trackTime] = True
+                            else:
+                                trackNotesOn[track.name,str(msg.note),trackTime] = True
+                            pass
+
                             _unknownNotesSeen.append(msg.note)
                         pass
                     elif msg.type == 'note_off':
@@ -201,23 +212,66 @@ def initialize_band():
                         pass
 
                     elif msg.type == 'text':
-                        trackNotesMeta[track.name,"text",trackTime] = msg.text
+                        
+                        try:
+                            len(trackNotesMeta[track.name,"text",trackTime])
+                        except:
+                            trackNotesMeta[track.name,"text",trackTime] = [ msg.text ]
+                        else:
+                            trackNotesMeta[track.name,"text",trackTime].append(msg.text)
+                        pass
 
                     elif msg.type == 'lyrics':
                         trackNotesLyrics[track.name,"lyrics",trackTime] = msg.text
 
-                    # Store the length of the track for processing.
                     elif msg.type == 'end_of_track':
                         trackNotesMeta[track.name,"length",0] = trackTime
+                    pass
+                pass
+
+                # Check to see if we found the length. If we didn't, we write it.
+                try:
+                    len(trackNotesMeta[track.name,"length",0])
+                except:
+                    trackNotesMeta[track.name,"length",0] = trackTime
                 pass
             else:
                 for msg in track:
                     # Add the time to the track.
                     trackTime += msg.time
 
-                    if track.name == "EVENTS":
-                        if msg.type == 'text':
-                            trackNotesMeta["meta","events",trackTime] = msg.text
+                    if msg.type == 'note_on':
+                        if msg.velocity == 0:
+                            trackNotesOff[track.name,str(msg.note),trackTime] = True
+                        else:
+                            trackNotesOn[track.name,str(msg.note),trackTime] = True
+                        pass
+                    pass
+
+                    if msg.type == 'note_off':
+                        trackNotesOff[track.name,str(msg.note),trackTime] = True
+
+                    if msg.type == 'text':
+
+                        if track.name == "EVENTS":
+                            try:
+                                len(trackNotesMeta["meta","events",trackTime])
+                            except:
+                                trackNotesMeta["meta","events",trackTime] = [ msg.text ]
+                            else:
+                                trackNotesMeta["meta","events",trackTime].append(msg.text)
+                            pass
+                        pass
+
+                        try:
+                            len(trackNotesMeta[track.name,"text",trackTime])
+                        except:
+                            trackNotesMeta[track.name,"text",trackTime] = [ msg.text ]
+                        else:
+                            trackNotesMeta[track.name,"text",trackTime].append(msg.text)
+                        pass
+
+                    pass
 
                     if msg.type == 'time_signature':
                         process_time_signature(trackTime, msg.numerator, msg.denominator)
@@ -227,7 +281,20 @@ def initialize_band():
                         trackNotesMeta["meta","tempo",trackTime] = msg.tempo
                     pass
 
+                    if msg.type == 'lyrics':
+                        trackNotesLyrics[track.name,"lyrics",trackTime] = msg.text
+
+                    if msg.type == 'end_of_track':
+                        trackNotesMeta[track.name,"length",0] = trackTime
+                    pass
                 pass
+            pass
+
+            # Length check
+            try:
+                len(trackNotesMeta[track.name,"length",0])
+            except:
+                trackNotesMeta[track.name,"length",0] = trackTime
             pass
         pass
     pass
@@ -268,6 +335,8 @@ def initialize_band():
             pass
         pass
 
+        output_add("debug_1",f"ticksPerBeat: {joule_data.TicksPerBeat}")
+
         # Events parsing
         _songData = joule_data.GameData["sections"]["Events"]
 
@@ -285,7 +354,14 @@ def initialize_band():
                 if _tempLine.startswith("section"):
                     _tempLine = _tempLine.lstrip("section")
                     _tempLine = _tempLine.strip()
-                    trackNotesMeta["meta","events",int(lineKey)] = _tempLine
+                    
+                    try:
+                        len(trackNotesMeta["meta","events",int(lineKey)])
+                    except:
+                        trackNotesMeta["meta","events",int(lineKey)] = [ _tempLine ]
+                    else:
+                        trackNotesMeta["meta","events",int(lineKey)].append(_tempLine)
+                    pass
 
                 elif _tempLine.startswith("lyric"):
                     _tempLine = _tempLine.lstrip("lyrics")
@@ -304,8 +380,14 @@ def initialize_band():
                     trackNotesOff["PART VOCALS", "phrase_p1", int(lineKey)] = True
 
                 else:
-                    trackNotesMeta["meta","events",int(lineKey)] = _tempLine
-
+                    try:
+                        len(trackNotesMeta["meta","events",int(lineKey)])
+                    except:
+                        trackNotesMeta["meta","events",int(lineKey)] = [ _tempLine ]
+                    else:
+                        trackNotesMeta["meta","events",int(lineKey)].append(_tempLine)
+                    pass
+                pass
             else:
                 output_add("issues_critical", f"Events | {lineKey} | Unknown Event '{lineValue}' found!")
             pass
@@ -332,28 +414,28 @@ def initialize_band():
                     noteType    = _tempData[0]
                     noteValue   = _tempData[1]
 
-                    match noteType:
-                        case "A":
-                            # Tempo anchors are not necessary for gameplay, and is just used for chart editing.
-                            output_add("debug_1",f"{track} | {lineKey} | Tempo position anchors are not supported.")
-                        case "B":
-                            trackNotesMeta["meta","tempo",int(lineKey)] = (int(noteValue) / 1000)
-                        case "TS":
+                    if noteType == "A":
+                        # Tempo anchors are not necessary for gameplay, and is just used for chart editing.
+                        output_add("debug_1",f"{track} | {lineKey} | Tempo position anchors are not supported.")
 
-                            num = int(noteValue)
+                    elif noteType == "B":
+                        trackNotesMeta["meta","tempo",int(lineKey)] = (int(noteValue) / 1000)
+                        
+                    elif noteType == "TS":
+                        num = int(noteValue)
 
-                            # The default denominator is "2", but check if there is one specified.
-                            if len(_tempData) == 3:
-                                den = int(_tempData[2])
-                            else:
-                                den = 2
-                            pass
+                        # The default denominator is "2", but check if there is one specified.
+                        if len(_tempData) == 3:
+                            den = int(_tempData[2])
+                        else:
+                            den = 2
+                        pass
 
-                            # Time Signatures in .chart use an exponent for the denominator.
-                            process_time_signature( int(lineKey), num, (2 ** den) )
+                        # Time Signatures in .chart use an exponent for the denominator.
+                        process_time_signature( int(lineKey), num, (2 ** den) )
 
-                        case _:
-                            output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
+                    else:
+                        output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
                     pass
 
                 # We start reading with difficulties, because that is how they start.
@@ -417,15 +499,26 @@ def initialize_band():
 
                             # Events in instruments
                             elif noteType == "E":
-                                match noteValue:
-                                    case "solo":
-                                        trackNotesOn[part_name, "solo", int(lineKey)] = True
-                                    case "soloend":
-                                        trackNotesOff[part_name, "solo", int(lineKey)] = True
-                                    case "end":
-                                        pass
-                                    case _:
-                                        trackNotesMeta[part_name,"text",int(lineKey)] = noteValue
+
+                                if noteValue == "solo":
+                                    trackNotesOn[part_name, "solo", int(lineKey)] = True
+
+                                elif noteValue == "soloend":
+                                    trackNotesOff[part_name, "solo", int(lineKey)] = True
+
+                                elif noteValue == "end":
+                                    pass
+
+                                else:
+                                    try:
+                                        len(trackNotesMeta[part_name,"text",int(lineKey)])
+                                    except:
+                                        trackNotesMeta[part_name,"text",int(lineKey)] = [ noteValue ]
+                                    else:
+                                        trackNotesMeta[part_name,"text",int(lineKey)].append(noteValue)
+                                    pass
+                                pass
+
                             else:
                                 output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
                             pass
@@ -455,6 +548,9 @@ def initialize_band():
     joule_data.GameData["trackNotesOff"] = trackNotesOff
     joule_data.GameData["trackNotesLyrics"] = trackNotesLyrics
     joule_data.GameData["trackNotesMeta"] = trackNotesMeta
+
+    joule_data.GameData["tracks"] = joule_data.Tracks
+    joule_data.GameData["tracksFound"] = joule_data.TracksFound
 
     return joule_data.GameData
 pass
@@ -520,45 +616,45 @@ def process_events():
     events                 = []
 
     for i in indexesEvents:
+        _events = joule_data.GameData["trackNotesMeta"]["meta","events",i]
 
-        _event = joule_data.GameData["trackNotesMeta"]["meta","events",i]
-        _event = _event.strip()
+        for _event in _events:
+            _event = _event.strip()
 
-        if _event not in joule_data_rockband.events_ignore_list:
+            if _event not in joule_data_rockband.events_ignore_list:
 
-            if _event in joule_data_rockband.event_friendly_list:
-                _event = joule_data_rockband.event_friendly_list[_event]
-            else:
+                if _event in joule_data_rockband.event_friendly_list:
+                    _event = joule_data_rockband.event_friendly_list[_event]
+                else:
 
-                # We are doing a quick check to see if anyone is using
-                # Rock Band style events, just not in brackets.
-                _tempEventCheck = f"[{_event}]"
+                    # We are doing a quick check to see if anyone is using
+                    # Rock Band style events, just not in brackets.
+                    _tempEventCheck = f"[{_event}]"
 
-                if _tempEventCheck in joule_data_rockband.events_ignore_list:
-                    continue
+                    if _tempEventCheck in joule_data_rockband.events_ignore_list:
+                        continue
 
-                if _tempEventCheck in joule_data_rockband.event_friendly_list:
-                    _event = joule_data_rockband.event_friendly_list[_tempEventCheck]
+                    if _tempEventCheck in joule_data_rockband.event_friendly_list:
+                        _event = joule_data_rockband.event_friendly_list[_tempEventCheck]
+                    pass
+
+                    _tempEventCheck = f"[prc_{_event}]"
+
+                    if _tempEventCheck in joule_data_rockband.events_ignore_list:
+                        continue
+
+                    if _tempEventCheck in joule_data_rockband.event_friendly_list:
+                        _event = joule_data_rockband.event_friendly_list[_tempEventCheck]
+                    pass
+
                 pass
 
-                _tempEventCheck = f"[prc_{_event}]"
+                _tempEvent = f"{format_location(i)}: {_event}"
 
-                if _tempEventCheck in joule_data_rockband.events_ignore_list:
-                    continue
-
-                if _tempEventCheck in joule_data_rockband.event_friendly_list:
-                    _event = joule_data_rockband.event_friendly_list[_tempEventCheck]
-                pass
-
+                events.append(_tempEvent)
+                output_add("events", _tempEvent)
             pass
-
-            _tempEvent = f"{format_location(i)}: {_event}"
-
-            events.append(_tempEvent)
-            output_add("events", _tempEvent)
-
         pass
-
     pass
 
     joule_data.GameData["events"] = events

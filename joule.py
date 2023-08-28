@@ -36,6 +36,13 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
     global ignoreChecks
 
+    joule_data.GameData.clear()
+    joule_data.GameDataOutput.clear()
+    joule_data.Tracks.clear()
+    joule_data.TracksFound.clear()
+
+    joule_data.GameDataOutput  = {"issues_critical":{},"issues_major":{},"issues_minor":{},}
+
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):
             joule_data.GameDataOutput.update( { f"debug_{i+1}":{}, } )

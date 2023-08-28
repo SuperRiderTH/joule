@@ -1,7 +1,7 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 0
-MinorVersion    = 18
+MinorVersion    = 19
 PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
@@ -28,8 +28,9 @@ GameSourceList = {
 }
 
 # Band Specific variables.
+Tracks          = []
 TracksFound     = []
-TicksPerBeat    = 480
+TicksPerBeat    = 0
 
 GameSourceRBLike = {
     "rb3",

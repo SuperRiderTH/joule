@@ -217,6 +217,16 @@ def initialize_band():
                         trackNotesMeta[track.name, "text", trackTime].append(msg.text)
                     pass
 
+                    if track.name == "EVENTS":
+                        try:
+                            len(trackNotesMeta["meta","events",trackTime])
+                        except:
+                            trackNotesMeta["meta","events",trackTime] = [ msg.text ]
+                        else:
+                            trackNotesMeta["meta","events",trackTime].append(msg.text)
+                        pass
+                    pass
+
                 elif msg.type == 'lyrics':
                     try:
                         len( trackNotesLyrics[track.name, "lyrics", trackTime] )

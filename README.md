@@ -24,3 +24,5 @@ Example: `joule_run("D:\RockBandJunk\song.mid", "rb3")`
   * Missing True Drums support.
 * Clone Hero: `ch`
   * Missing 6 Lane support.
+* Guitar Hero World Tour: Definitive Edition: `ghwtde`
+  * Does not support native files, supports MIDI and .chart.

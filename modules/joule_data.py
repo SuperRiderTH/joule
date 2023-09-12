@@ -1,8 +1,8 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 0
-MinorVersion    = 19
-PatchVersion    = 2
+MinorVersion    = 20
+PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
 
@@ -25,12 +25,16 @@ GameSourceList = {
     "ps":"Phase Shift",
     "ch":"Clone Hero",
     "yarg":"Yet Another Rhythm Game",
+    "ghwtde":"Guitar Hero World Tour: Definitive Edition"
 }
 
 # Band Specific variables.
-Tracks          = []
-TracksFound     = []
-TicksPerBeat    = 0
+Tracks              = []
+TracksFound         = []
+TicksPerBeat        = 0
+TicksSustainLimit   = 0
+
+WhammyCutoff        = None
 
 GameSourceRBLike = {
     "rb3",
@@ -41,5 +45,12 @@ GameSourceRBLike = {
     "yarg",
 }
 
+GameSourceHasSongINI = {
+    "ps",
+    "ch",
+    "ghwtde",
+}
+
 BrokenChordsAllowed     = False
 LowerHOPOsAllowed       = False
+NoteOverdrive           = None

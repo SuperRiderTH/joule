@@ -14,6 +14,7 @@ sys.path.insert(1,tempDirectory)
 import joule_data
 
 # For simplicity, game specific functions are moved into their own files.
+from joule_system import *
 from joule_band import *
 from joule_band_rbn import *
 
@@ -104,6 +105,35 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
     # Game specific checks
     # ========================================
+
+    # Check for a song.ini, use their information if it exists.
+    if joule_data.GameSource in joule_data.GameSourceHasSongINI:
+        gameDataDirectory = os.path.dirname(gameDataLocation)
+        print(gameDataDirectory)
+
+        try:
+            _temp = open(gameDataDirectory + "/song.ini", mode="r")
+            _tempLines = _temp.readlines()
+
+            print("Found song.ini, parsing information...")
+
+            for line in _tempLines:
+                lineGroups = line_groups(line)
+
+                if lineGroups != None:
+
+                    if lineGroups[0].strip() == "multiplier_note":
+                        joule_data.NoteOverdrive = int(lineGroups[1].strip())
+                        print("Found multiplier_note.")
+
+                    if lineGroups[0].strip() == "WhammyCutoff":
+                        joule_data.WhammyCutoff = float(lineGroups[1].strip())
+                        print("Found WhammyCutoff.")
+
+        except OSError:
+            print("No song.ini found.")
+        pass
+    pass
     
     if joule_data.GameSource in joule_data.GameSourceRBLike:
         
@@ -159,7 +189,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                 
             pass
         pass
-    elif joule_data.GameSource == "ch":
+    elif joule_data.GameSource == "ch" or joule_data.GameSource == "ghwtde":
         
         joule_data.GameData["sections"] = {}
         joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )

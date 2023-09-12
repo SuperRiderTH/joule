@@ -1,5 +1,6 @@
 # This is the file for system related tasks that is shared
 # between multiple files.
+import re
 
 import joule_data
 
@@ -23,6 +24,9 @@ def get_source_data():
         temp = joule_data_rockband
     
     if joule_data.GameSource == "ch":
+        temp = joule_data_clonehero
+
+    if joule_data.GameSource == "ghwtde":
         temp = joule_data_clonehero
     
     if joule_data.GameSource == "yarg":
@@ -75,3 +79,16 @@ def get_data_indexes_range(type:str, track:str, key:str, time1:int, time2:int):
     return _tempData
 pass
 
+
+def line_groups(inputStr:str):
+
+    test = re.search("(?:\ *)([^\s=]+)(?:\s*)(?:={1})(?:\ *)(.+)", inputStr)
+
+    if test != None:
+        lineGroups = test.groups()
+        return lineGroups
+    else:
+        return None
+    pass
+
+pass

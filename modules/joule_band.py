@@ -61,11 +61,6 @@ def process_time_signature( ticks:int, numerator:int, denominator:int ):
     time_signature_measure.append( time_signature_last_measure)
 pass
 
-def line_groups(inputStr:str):
-    lineGroups = re.search("(?:\ *)([^\ =]+)(?:\ *)(?:={1})(?:\ *)(.+)(?:)", inputStr).groups()
-    return lineGroups
-pass
-
 def section_read( line_start:int ):
 
     inSection = False
@@ -140,6 +135,22 @@ def initialize_band():
         if joule_data.GameSource == "rb3" or "rb2":
             if joule_data.TicksPerBeat != 480:
                 output_add("issues_critical", "Ticks per Quarter Note is not 480.")
+            pass
+        pass
+
+        if joule_data.WhammyCutoff != None:
+            joule_data.TicksSustainLimit = joule_data.TicksPerBeat * joule_data.WhammyCutoff
+        else:
+            if joule_data.GameSource in joule_data.GameSourceRBLike:
+                joule_data.TicksSustainLimit = joule_data.TicksPerBeat / 4
+            else:
+                if joule_data.GameSource == "ch":
+                    factor = 0.45
+                elif joule_data.GameSource == "ghwtde":
+                    factor = 0.5
+                pass
+                
+                joule_data.TicksSustainLimit = joule_data.TicksPerBeat * factor
             pass
         pass
 
@@ -291,6 +302,19 @@ def initialize_band():
             if _tempGroup[0] == "Resolution":
                 joule_data.TicksPerBeat = int(_tempGroup[1])
             pass
+        pass
+
+        if joule_data.WhammyCutoff != None:
+            joule_data.TicksSustainLimit = joule_data.TicksPerBeat * joule_data.WhammyCutoff
+        else:
+
+            if joule_data.GameSource == "ch":
+                factor = 0.45
+            else:
+                factor = 0.5
+
+            joule_data.TicksSustainLimit = joule_data.TicksPerBeat * factor
+            
         pass
 
         output_add("debug_1",f"ticksPerBeat: {joule_data.TicksPerBeat}")

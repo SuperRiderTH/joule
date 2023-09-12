@@ -43,6 +43,9 @@ def set_source_data():
     joule_data.BrokenChordsAllowed = base.brokenChordsAllowed
     joule_data.LowerHOPOsAllowed = base.lowerHOPOsAllowed
 
+    if joule_data.NoteOverdrive != None:
+        note_overdrive = joule_data.NoteOverdrive
+
 pass
 
 

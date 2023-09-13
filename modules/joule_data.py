@@ -1,8 +1,8 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 0
-MinorVersion    = 20
-PatchVersion    = 1
+MinorVersion    = 21
+PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
 
@@ -34,8 +34,6 @@ TracksFound         = []
 TicksPerBeat        = 0
 TicksSustainLimit   = 0
 
-WhammyCutoff        = None
-
 GameSourceRBLike = {
     "rb3",
     "rb2",
@@ -53,4 +51,3 @@ GameSourceHasSongINI = {
 
 BrokenChordsAllowed     = False
 LowerHOPOsAllowed       = False
-NoteOverdrive           = None

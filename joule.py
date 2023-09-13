@@ -125,11 +125,11 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                     keyCheck = lineGroups[0].strip().lower()
 
                     if "multiplier" in keyCheck and "note" in keyCheck:
-                        joule_data.NoteOverdrive = int(lineGroups[1].strip())
+                        write_meta("NoteOverdrive", int(lineGroups[1].strip()))
                         print("Found Multiplier Note.")
 
                     if "whammy" in keyCheck and "cutoff" in keyCheck:
-                        joule_data.WhammyCutoff = float(lineGroups[1].strip())
+                        write_meta("WhammyCutoff", float(lineGroups[1].strip()))
                         print("Found Whammy Cutoff.")
 
         except OSError:

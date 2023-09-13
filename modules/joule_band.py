@@ -138,11 +138,13 @@ def initialize_band():
             pass
         pass
 
-        if joule_data.WhammyCutoff != None:
-            joule_data.TicksSustainLimit = joule_data.TicksPerBeat * joule_data.WhammyCutoff
+        WhammyCutoff = get_meta("WhammyCutoff")
+
+        if WhammyCutoff != None:
+            write_meta("TicksSustainLimit", joule_data.TicksPerBeat * WhammyCutoff)
         else:
             if joule_data.GameSource in joule_data.GameSourceRBLike:
-                joule_data.TicksSustainLimit = joule_data.TicksPerBeat / 4
+                write_meta("TicksSustainLimit", joule_data.TicksPerBeat / 4)
             else:
                 if joule_data.GameSource == "ch":
                     factor = 0.45
@@ -150,9 +152,11 @@ def initialize_band():
                     factor = 0.5
                 pass
                 
-                joule_data.TicksSustainLimit = joule_data.TicksPerBeat * factor
+                write_meta("TicksSustainLimit", joule_data.TicksPerBeat * factor)
             pass
         pass
+
+        output_add("debug_1",f"TicksSustainLimit: {get_meta('TicksSustainLimit')}")
 
         # Track processing
         for i, track in enumerate(joule_data.GameDataFile.tracks): # type: ignore
@@ -304,8 +308,10 @@ def initialize_band():
             pass
         pass
 
-        if joule_data.WhammyCutoff != None:
-            joule_data.TicksSustainLimit = joule_data.TicksPerBeat * joule_data.WhammyCutoff
+        WhammyCutoff = get_meta("WhammyCutoff")
+
+        if WhammyCutoff != None:
+            write_meta("TicksSustainLimit", joule_data.TicksPerBeat * WhammyCutoff)
         else:
 
             if joule_data.GameSource == "ch":
@@ -313,11 +319,12 @@ def initialize_band():
             else:
                 factor = 0.5
 
-            joule_data.TicksSustainLimit = joule_data.TicksPerBeat * factor
+            write_meta("TicksSustainLimit", joule_data.TicksPerBeat * factor)
             
         pass
 
         output_add("debug_1",f"ticksPerBeat: {joule_data.TicksPerBeat}")
+        output_add("debug_1",f"TicksSustainLimit: {get_meta('TicksSustainLimit')}")
 
         # Events parsing
         _songData = joule_data.GameData["sections"]["Events"]
@@ -529,8 +536,15 @@ def initialize_band():
     joule_data.GameData["trackNotesOn"] = trackNotesOn
     joule_data.GameData["trackNotesOff"] = trackNotesOff
     joule_data.GameData["trackNotesLyrics"] = trackNotesLyrics
-    joule_data.GameData["trackNotesMeta"] = trackNotesMeta
 
+    try:
+        len(joule_data.GameData["trackNotesMeta"])
+    except:
+        joule_data.GameData["trackNotesMeta"] = trackNotesMeta
+    else:
+        joule_data.GameData["trackNotesMeta"].update(trackNotesMeta)
+    pass
+    
     joule_data.GameData["tracks"] = joule_data.Tracks
     joule_data.GameData["tracksFound"] = joule_data.TracksFound
 

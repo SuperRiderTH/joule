@@ -24,8 +24,8 @@ def format_location( note_location:int ):
             location_base = time_signature_locations[location_index]
             location_offset = note_location - location_base
 
-            location_num = joule_data.GameData["trackNotesMeta"]["meta","time_signature_num",joule_band.time_signature_time[location_index]]
-            location_denom = joule_data.GameData["trackNotesMeta"]["meta","time_signature_denom",joule_band.time_signature_time[location_index]]
+            location_num = get_meta("time_signature_num", joule_band.time_signature_time[location_index])
+            location_denom = get_meta("time_signature_denom", joule_band.time_signature_time[location_index])
 
             divisor_factor = (location_denom / 4)
             divisor = ( joule_data.TicksPerBeat / divisor_factor ) * location_num

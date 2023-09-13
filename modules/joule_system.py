@@ -36,6 +36,39 @@ def get_source_data():
 
 pass
 
+def get_meta(track:str, key:int = 0):
+# get_meta("time_signature_num", 0)
+
+    try:
+        _tempData = joule_data.GameData["trackNotesMeta"]["meta",track,key]
+    except KeyError:
+        return None
+    else:
+        return _tempData
+    pass
+
+pass
+
+def write_meta(track:str, data):
+# This function writes data to the meta section of the Meta dictionary.
+
+    if not "trackNotesMeta" in joule_data.GameData.keys():
+        joule_data.GameData["trackNotesMeta"] = {}
+
+    joule_data.GameData["trackNotesMeta"]["meta",track,0] = data
+
+pass
+
+def write_meta_key(track:str, key:int, data):
+# This function writes data to the meta section of the Meta dictionary.
+
+    if not "trackNotesMeta" in joule_data.GameData.keys():
+        joule_data.GameData["trackNotesMeta"] = {}
+
+    joule_data.GameData["trackNotesMeta"]["meta",track,key] = data
+
+pass
+
 
 def get_data_indexes(type:str, track:str, key:str, strict:bool = False):
 

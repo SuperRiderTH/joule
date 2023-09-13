@@ -269,7 +269,20 @@ def initialize_band():
             except:
                 trackNotesMeta[track.name,"length",0] = trackTime
             pass
+
+            output_add("debug_2",f"{track.name} Length: {trackTime}")
+
+            if get_meta("TotalLength") != None:
+                if get_meta("TotalLength") < trackTime:
+                    write_meta("TotalLength", trackTime)
+                pass
+            else:
+                write_meta("TotalLength", trackTime)
+            pass
         pass
+
+        output_add("debug_1",f"TotalLength: {get_meta('TotalLength')}")
+
     pass
 
     if joule_data.GameDataFileType == "CHART":
@@ -481,6 +494,9 @@ def initialize_band():
                                     trackNotesOn[part_name, noteName, int(lineKey)] = True
                                     trackNotesOff[part_name, noteName, int(lineKey) + noteLength] = True
 
+                                    length = int(lineKey) + noteLength
+                                    trackNotesMeta[part_name, "length", 0] = length
+
                                 else:
                                     # Yes, this error outputs in tick time.
                                     output_add("issues_critical",f"{track} | {lineKey} | Unknown Note '{str(noteValue)}' found!")
@@ -516,6 +532,23 @@ def initialize_band():
                 pass
             pass
         pass
+
+        for part_name in joule_data.TracksFound:
+            length = trackNotesMeta[part_name, "length", 0]
+            output_add("debug_2",f"{part_name} Length: {length}")
+
+            if get_meta("TotalLength") != None:
+                if get_meta("TotalLength") < length:
+                    write_meta("TotalLength", length)
+                pass
+            else:
+                write_meta("TotalLength", length)
+            pass
+
+        pass
+
+        output_add("debug_1",f"TotalLength: {get_meta('TotalLength')}")
+
     pass
 
 

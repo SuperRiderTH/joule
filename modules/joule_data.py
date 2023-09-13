@@ -2,7 +2,7 @@
 
 MajorVersion    = 0
 MinorVersion    = 21
-PatchVersion    = 0
+PatchVersion    = 1
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
 
@@ -32,7 +32,6 @@ GameSourceList = {
 Tracks              = []
 TracksFound         = []
 TicksPerBeat        = 0
-TicksSustainLimit   = 0
 
 GameSourceRBLike = {
     "rb3",

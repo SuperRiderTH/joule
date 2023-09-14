@@ -1,8 +1,10 @@
+from mido import MidiTrack
+
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 0
-MinorVersion    = 21
-PatchVersion    = 1
+MinorVersion    = 22
+PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
 
@@ -11,6 +13,7 @@ Debug           = 2
 
 GameDataFile        = None
 GameDataFileType    = "NONE"
+GameDataTempo       = MidiTrack()
 
 GameData        = {}
 GameDataOutput  = {"issues_critical":{},"issues_major":{},"issues_minor":{},}

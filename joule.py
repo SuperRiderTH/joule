@@ -109,7 +109,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # Check for a song.ini, use their information if it exists.
     if joule_data.GameSource in joule_data.GameSourceHasSongINI:
         gameDataDirectory = os.path.dirname(gameDataLocation)
-        print(gameDataDirectory)
+        #print(gameDataDirectory)
 
         try:
             _temp = open(gameDataDirectory + "/song.ini", mode="r")

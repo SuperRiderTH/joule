@@ -581,29 +581,6 @@ def initialize_band():
     joule_data.GameData["tracks"] = joule_data.Tracks
     joule_data.GameData["tracksFound"] = joule_data.TracksFound
 
-
-    # Now we want to build a new MIDI track with just the tempo events
-    mid = mido.MidiFile()
-    mid.tracks.append(joule_data.GameDataTempo)
-
-    # Set the ticks per beat first.
-    mid.ticks_per_beat = joule_data.TicksPerBeat
-
-    indexes = get_data_indexes("trackNotesMeta","meta","tempo")
-
-    tempTime = 0
-
-    for index, time in enumerate(indexes):
-        _tempo = trackNotesMeta["meta","tempo",time]
-        _numerator = trackNotesMeta["meta","time_signature_num",time]
-        _denominator = trackNotesMeta["meta","time_signature_denom",time]
-
-        if index > 0:
-            tempTime = indexes[index] - indexes[index - 1]
-
-        joule_data.GameDataTempo.append( mido.MetaMessage('set_tempo', tempo=_tempo, time=tempTime) )
-        joule_data.GameDataTempo.append( mido.MetaMessage('time_signature', numerator=_numerator, denominator=_denominator) )
-
     return joule_data.GameData
 pass
 

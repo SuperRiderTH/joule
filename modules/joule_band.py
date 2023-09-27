@@ -282,8 +282,6 @@ def initialize_band():
             pass
         pass
 
-        output_add("debug_1",f"TotalLength: {get_meta('TotalLength')}")
-
     pass
 
     if joule_data.GameDataFileType == "CHART":

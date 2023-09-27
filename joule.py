@@ -144,6 +144,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         initTest = initialize_band()
 
         if initTest != False:
+            generate_seconds()
             process_lyrics()
             process_events()
         
@@ -209,6 +210,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         initTest = initialize_band()
         
         if initTest != False:
+            generate_seconds()
             process_lyrics()
             process_events()
 

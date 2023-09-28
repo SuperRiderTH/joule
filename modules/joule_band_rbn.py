@@ -62,19 +62,7 @@ def validate_THING(partname:str):
 
 pass
 
-def validate_spacing(partname:str):
-
-    if notesname_instruments_array[partname] == "VOCALS":
-        validate_spacing_vocals(partname)
-
-    if notesname_instruments_array[partname] == "5LANES":
-        validate_spacing_lane(partname)
-
-    # TODO: Other instruments.
-
-pass
-
-def validate_spacing_lane(partname:str):
+def validate_sustains(partname:str, isRealKeys=False):
     set_source_data()
 
     global notename_array
@@ -86,22 +74,39 @@ def validate_spacing_lane(partname:str):
     sustainLimit = get_meta('TicksSustainLimit')
     sustainMinimum = get_meta('SustainMinimum')
 
-    for diff in diff_array:
+    diffs = diff_array
+
+    if isRealKeys:
+        diffs = [partname[-1].lower()]
+
+    for diff in diffs:
 
         notesOn     = { "lane":[] }
         notesOff    = { "lane":[] }
         notesAll    = {}
 
-        notesOn.update( { "lane" : get_data_indexes("trackNotesOn",partname,f"{diff}") } )
-        notesOff.update( { "lane" : get_data_indexes("trackNotesOff",partname,f"{diff}") } )
-        notesAll = sorted(set( get_data_indexes("trackNotesOn",partname,f"{diff}") + get_data_indexes("trackNotesOff",partname,f"{diff}") ))
+        if isRealKeys:
+            toFind = "note"
+        else:
+            toFind = f"{diff}"
+        pass
+
+        notesOn.update( { "lane" : get_data_indexes("trackNotesOn",partname,toFind) } )
+        notesOff.update( { "lane" : get_data_indexes("trackNotesOff",partname,toFind) } )
+        notesAll = sorted(set( get_data_indexes("trackNotesOn",partname,toFind) + get_data_indexes("trackNotesOff",partname,toFind) ))
 
 
-        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) < 2:
+        if len(get_data_indexes("trackNotesOn", partname, toFind)) < 2:
             output_add("debug_3", f"{partname} | validate_spacing_lane | No notes found on {diff_array[diff]}.")
             continue
 
-        print(f"Processsing note spacing for {partname} on {diff_array[diff]}...")
+
+        statusString = f"Processsing sustains for {partname}"
+        
+        if not partname.startswith("PART REAL_KEYS"):
+            statusString += f" on {diff_array[diff]}"
+            
+        print(f"{statusString}...")
 
 
         lastNoteOn          = 0
@@ -126,7 +131,7 @@ def validate_spacing_lane(partname:str):
 
                     if lastNoteWasSustain:
                         sustainLength = joule_data.Seconds[lastNoteOff] - joule_data.Seconds[lastNoteOn]
-                        print(f"{format_location(lastNoteOn, True)} - {sustainLength}")
+                        #print(f"{format_location(lastNoteOn, True)} - {sustainLength}")
 
                         if sustainLength < sustainMinimum:
                             output_add("issues_major", f"{partname} | {format_location(lastNoteOn)} | Note on {diff_array[diff]} is too short to be a sustain.")

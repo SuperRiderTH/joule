@@ -160,6 +160,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                     if part in ( "PART GUITAR", "PART BASS", "PART RHYTHM"):
                         rbn_guitar_chords(part)
                         rbn_hopos(part)
+                        validate_sustains(part)
                     pass
 
                     if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
@@ -169,6 +170,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                         pass
                     
                         rbn_vocals_lyrics(part)
+                        validate_spacing_vocals(part)
                         
                     pass
 
@@ -179,15 +181,17 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                         for diff in joule_data_rockband.diff_array:
                             rbn_broken_chords(part,diff)
                         pass
+
+                        validate_sustains(part)
+
                     pass
 
                     if part.startswith("PART REAL_KEYS"):
                         rbn_keys_real_chords(part)
+                        validate_sustains(part, True)
                         pass
                     pass
 
-                    validate_spacing(part)
-                
                 validate_instrument_phrases()
                 
             pass
@@ -225,6 +229,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                     if part in GuitarTracks:
                         rbn_guitar_chords(part)
                         rbn_hopos(part)
+                        validate_sustains(part)
                     pass
 
                     if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
@@ -234,6 +239,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                         pass
                     
                         rbn_vocals_lyrics(part)
+                        validate_spacing_vocals(part)
                         
                     pass
 
@@ -244,15 +250,17 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                         for diff in joule_data_rockband.diff_array:
                             rbn_broken_chords(part,diff)
                         pass
+
+                        validate_sustains(part)
+
                     pass
 
                     if part.startswith("PART REAL_KEYS"):
                         rbn_keys_real_chords(part)
+                        validate_sustains(part, True)
                         pass
                     pass
 
-                    validate_spacing(part)
-                
                 validate_instrument_phrases()
             pass
         pass

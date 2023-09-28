@@ -7,6 +7,11 @@ from joule_data_yarg import *
 brokenChordsAllowed     = True
 lowerHOPOsAllowed       = True
 
+# Clone Hero specifically says to consider removing
+# sustains shorter than 200 milliseconds in their
+# Discord server. 
+sustainMinimum          = 0.2
+
 # Any part in this list will be processed.
 notesname_instruments_array = {
     "PART DRUMS": "DRUMS",

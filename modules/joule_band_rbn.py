@@ -47,6 +47,8 @@ def set_source_data():
     if tempNO != None:
         note_overdrive = tempNO
 
+    write_meta("SustainMinimum", base.sustainMinimum)
+
 pass
 
 
@@ -82,6 +84,7 @@ def validate_spacing_lane(partname:str):
     noteLength16 = noteLength64 * 4
 
     sustainLimit = get_meta('TicksSustainLimit')
+    sustainMinimum = get_meta('SustainMinimum')
 
     for diff in diff_array:
 
@@ -108,6 +111,32 @@ def validate_spacing_lane(partname:str):
 
         for note in notesAll:
 
+            if note in notesOff["lane"]:
+                currentNotes -= notesOff["lane"].count(note)
+
+                if currentNotes == 0:
+                    
+                    lastNoteOff = note
+
+                    if lastNoteOff - lastNoteOn > sustainLimit:
+                        lastNoteWasSustain = True
+                    else:
+                        lastNoteWasSustain = False
+                    pass
+
+                    if lastNoteWasSustain:
+                        sustainLength = joule_data.Seconds[lastNoteOff] - joule_data.Seconds[lastNoteOn]
+                        print(f"{format_location(lastNoteOn, True)} - {sustainLength}")
+
+                        if sustainLength < sustainMinimum:
+                            output_add("issues_major", f"{partname} | {format_location(lastNoteOn)} | Note on {diff_array[diff]} is too short to be a sustain.")
+                        pass
+
+                    pass
+
+                pass
+            pass
+
             if note in notesOn["lane"]:
                 if currentNotes == 0:
 
@@ -121,19 +150,6 @@ def validate_spacing_lane(partname:str):
                 currentNotes += notesOn["lane"].count(note)
             pass
 
-            if note in notesOff["lane"]:
-                currentNotes -= notesOff["lane"].count(note)
-
-                if currentNotes == 0:
-                    lastNoteOff = note
-
-                    if lastNoteOff - lastNoteOn > sustainLimit:
-                        lastNoteWasSustain = True
-                    else:
-                        lastNoteWasSustain = False
-                    pass
-                pass
-            pass
         pass
     pass
 pass

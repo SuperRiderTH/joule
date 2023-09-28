@@ -6,6 +6,9 @@ brokenChordsAllowed     = False
 lowerHOPOsAllowed       = False
 note_overdrive          = 116
 
+# Sustain minimum based on CAT's sustain definition.
+sustainMinimum          = 0.28125
+
 # Any part in this list will be processed.
 notesname_instruments_array = {
     "PART DRUMS": "DRUMS",

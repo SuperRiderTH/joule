@@ -125,6 +125,8 @@ def initialize_band():
     notename_array = base.notename_array
     diff_array = base.diff_array
 
+    # MIDI Processing
+    # ========================================
     if joule_data.GameDataFileType == "MIDI":
 
         joule_data.TicksPerBeat = joule_data.GameDataFile.ticks_per_beat # type: ignore
@@ -139,6 +141,11 @@ def initialize_band():
             pass
         pass
 
+
+        # It is possible to specify the length of a note needed
+        # in order for it to be a sustain. Rock Band uses a 1/16
+        # note by default, but we need to calculate the length
+        # needed if it is specified.
         WhammyCutoff = get_meta("WhammyCutoff")
 
         if WhammyCutoff != None:
@@ -284,6 +291,9 @@ def initialize_band():
 
     pass
 
+
+    # Chart Processing
+    # ========================================
     if joule_data.GameDataFileType == "CHART":
 
         notename_chart_notes = base.notename_chart_notes

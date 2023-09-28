@@ -70,7 +70,7 @@ def generate_seconds():
         seconds_final = seconds + time_base
         time_base = seconds_final
 
-        write_meta_key("seconds", test, seconds_final)
+        joule_data.Seconds.append(seconds_final)
 
         if last_second < math.floor(seconds_final):
             last_second = math.floor(seconds_final)
@@ -78,7 +78,7 @@ def generate_seconds():
             #print(f"{test} : {seconds_final}")
 
     output_add("debug_1",f"TotalLength: {get_meta('TotalLength')} | {format_seconds(get_meta('TotalLength'))}")
-    write_meta("seconds_list", seconds_list)
+    joule_data.SecondsList = seconds_list
     return True
 
 pass
@@ -88,7 +88,7 @@ def format_seconds( note_location:int ):
     # Return the ticks in a seconds based format,
     # similar to how REAPER displays the time.
 
-    raw_time = get_meta('seconds', note_location)
+    raw_time = joule_data.Seconds[note_location]
 
     if raw_time == None:
         print(note_location)

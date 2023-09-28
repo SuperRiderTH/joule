@@ -1,7 +1,6 @@
 # This is the file for system related tasks that is shared
 # between multiple files.
 import re
-
 import joule_data
 
 import joule_data_rockband
@@ -80,17 +79,11 @@ def get_data_indexes(type:str, track:str, key:str, strict:bool = False):
 
     _tempData = []
 
-    for _key in joule_data.GameData[type].keys():
-        if str(_key[0]) == track:
-            if strict == True:
-                if _key[1] == (key):
-                    _tempData.append(_key[2])
-                pass
-            else:
-                if _key[1].startswith(key):
-                    _tempData.append(_key[2])
-                pass
-            pass
+    for _key,_val, _ind in joule_data.GameData[type].keys():
+        if strict and _key == track and _val == key:
+            _tempData.append(_ind)
+        elif _key == track and _val.startswith(key):
+            _tempData.append(_ind)
         pass
     pass
 

@@ -65,8 +65,77 @@ def validate_spacing(partname:str):
     if notesname_instruments_array[partname] == "VOCALS":
         validate_spacing_vocals(partname)
 
+    if notesname_instruments_array[partname] == "5LANES":
+        validate_spacing_lane(partname)
+
     # TODO: Other instruments.
 
+pass
+
+def validate_spacing_lane(partname:str):
+    set_source_data()
+
+    global notename_array
+
+    noteLength64 = joule_data.GameDataFile.ticks_per_beat / 16
+    noteLength32 = noteLength64 * 2
+    noteLength16 = noteLength64 * 4
+
+    sustainLimit = get_meta('TicksSustainLimit')
+
+    for diff in diff_array:
+
+        notesOn     = { "lane":[] }
+        notesOff    = { "lane":[] }
+        notesAll    = {}
+
+        notesOn.update( { "lane" : get_data_indexes("trackNotesOn",partname,f"{diff}") } )
+        notesOff.update( { "lane" : get_data_indexes("trackNotesOff",partname,f"{diff}") } )
+        notesAll = sorted(set( get_data_indexes("trackNotesOn",partname,f"{diff}") + get_data_indexes("trackNotesOff",partname,f"{diff}") ))
+
+
+        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) < 2:
+            output_add("debug_3", f"{partname} | validate_spacing_lane | No notes found on {diff_array[diff]}.")
+            continue
+
+        print(f"Processsing note spacing for {partname} on {diff_array[diff]}...")
+
+
+        lastNoteOn          = 0
+        lastNoteOff         = 0
+        lastNoteWasSustain  = False
+        currentNotes        = 0
+
+        for note in notesAll:
+
+            if note in notesOn["lane"]:
+                if currentNotes == 0:
+
+                    # Sustain gap Check
+                    if ( ( note - lastNoteOff ) < noteLength16 ) and lastNoteWasSustain:
+                        output_add("issues_major", f"{partname} | {format_location(note)} | Note on {diff_array[diff]} should have a 16th note gap from a sustain.")
+                    pass
+
+                    lastNoteOn = note
+                pass
+                currentNotes += notesOn["lane"].count(note)
+            pass
+
+            if note in notesOff["lane"]:
+                currentNotes -= notesOff["lane"].count(note)
+
+                if currentNotes == 0:
+                    lastNoteOff = note
+
+                    if lastNoteOff - lastNoteOn > sustainLimit:
+                        lastNoteWasSustain = True
+                    else:
+                        lastNoteWasSustain = False
+                    pass
+                pass
+            pass
+        pass
+    pass
 pass
 
 def validate_spacing_vocals(partname:str):
@@ -346,7 +415,7 @@ def rbn_guitar_chords(partname:str):
 
     for diff in diff_array:
 
-        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) == 0:
+        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) < 2:
             output_add("debug_3", f"{partname} | rbn_guitar_chords | No notes found on {diff_array[diff]}.")
             continue
 
@@ -869,8 +938,8 @@ def rbn_keys_real_chords(partname:str):
     # Gather the notes for checking.
 
     for noteCheck in range(48,73):
-        tempNotesOn = ( get_data_indexes("trackNotesOn", partname, notename_array[noteNames][noteCheck]) )
-        tempNotesOff = ( get_data_indexes("trackNotesOff", partname, notename_array[noteNames][noteCheck]) )
+        tempNotesOn = ( get_data_indexes("trackNotesOn", partname, notename_array[noteNames][noteCheck], True) )
+        tempNotesOff = ( get_data_indexes("trackNotesOff", partname, notename_array[noteNames][noteCheck], True) )
 
         notesOn.update( { f"{notename_array[noteNames][noteCheck]}" : tempNotesOn } )
         notesOff.update( { f"{notename_array[noteNames][noteCheck]}" : tempNotesOff } )

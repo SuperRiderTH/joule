@@ -53,7 +53,7 @@ difficultyIcons = [
         "◉◉◉○○",
         "◉◉◉◉○",
         "◉◉◉◉◉",
-        "◍◍◍◍◍",
+        "●●●●●",
 ]
 
 # Based on official instrument difficulty tier values.
@@ -81,12 +81,12 @@ scoreSituation  = {}
 # TODO: Import vanilla RB3 files, determine scores.
 
 # All notes have a base score, that is adjusted by modifier scores.
-scoreNote["Normal"]     = 100
+scoreNote["Normal"]     = 65
 
-scoreNote["Chord"]      = 3
+scoreNote["Chord"]      = 2
 scoreNote["Broken"]     = 10
 
-scoreNote["Sustain"]  = 2
+scoreNote["Sustain"]  = 0.1
 
 scoreNote["Limb"]       = 2
 
@@ -110,6 +110,8 @@ def muse_run(GameData = None):
         print(f"{joule_data.GameSourceFull} is not a Rock Band style game! Muse will give you a estimation based on Rock Band standards.")
 
     joule_data.GameDataOutput.update( { "muse_difficulties":{} } )
+
+    print(f"Analysing difficulties...")
 
     for part in joule_data.TracksFound:
         if part in ValidTracks:
@@ -149,14 +151,6 @@ def muse_check(part:str):
     pass
 
     if currentInstrument != None:
-        print(f"Analysing difficulty for {part}...")
-
-        score.update( { f"{part}":[] } )
-
-        _score = []
-
-        for index in range(totalLength):
-            _score.append(0)
         
         # Note grabbing
         if currentInstrument == "ProKeys":
@@ -169,16 +163,31 @@ def muse_check(part:str):
         notesOff    = get_data_indexes("trackNotesOff",part,toFind)
         notesAll    = sorted( set( notesOn + notesOff ) )
 
-        currentPosition = 0
+        if len(notesOn) < 2:
+            return
+
+        score.update( { f"{part}":[] } )
+
         currentNotes = 0
+        currentPosition = 0
 
         lastNoteOn = 0
         lastNoteOff = 0
 
-        for note in notesAll:
 
-            while note < joule_data.SecondsList[currentPosition]:
-                currentPosition += 1
+        _score          = []
+        _nps            = []
+        scoreSeconds    = []
+
+        for index in range(totalLength):
+            _score.append(0)
+
+        for index in range(len(joule_data.SecondsList)):
+            scoreSeconds.append(0)
+            _nps.append(0)
+            
+
+        for note in notesAll:
 
             if note in notesOff:
                 currentNotes -= notesOff.count(note)
@@ -187,7 +196,8 @@ def muse_check(part:str):
                     lastNoteOff = note
 
                     if lastNoteOff - lastNoteOn > sustainLimit:
-                        lastNoteWasSustain = True
+                        for ind in range(lastNoteOn, lastNoteOff):
+                            _score[ind] += scoreNote["Sustain"]
                     pass
                 pass
             pass
@@ -196,11 +206,22 @@ def muse_check(part:str):
 
                 if currentNotes == 0:
                     lastNoteOn = note
+                else:
+                    _score[note] += scoreNote["Broken"]
                 pass
 
                 currentNotes += notesOn.count(note)
 
                 _score[note] += scoreNote["Normal"]
+
+                while index > joule_data.SecondsList[currentPosition]:
+                    if currentPosition < len(joule_data.SecondsList)  - 1:
+                        currentPosition += 1
+                    else:
+                        break
+                    pass
+
+                _nps[currentPosition] += 1
 
                 if currentNotes > 1:
                     _score[note] += scoreNote["Chord"] * currentNotes
@@ -209,8 +230,30 @@ def muse_check(part:str):
 
         pass
 
-        _rawScore   = sum(_score)
-        _finalScore = sum(_score) / len(joule_data.SecondsList)
+
+        
+
+        currentPosition = 0
+
+        for index, scoreAt in enumerate(_score):
+
+            while index > joule_data.SecondsList[currentPosition]:
+                if currentPosition < len(joule_data.SecondsList)  - 1:
+                    currentPosition += 1
+                else:
+                    break
+                pass
+
+            scoreSeconds[currentPosition] += scoreAt
+
+        pass
+
+        _rawScore   = sum(scoreSeconds)
+        _finalScore = sum(scoreSeconds) / len(scoreSeconds)
+
+        _preNPS     = sum(_nps) / len(scoreSeconds)
+
+        _finalNPS   = str(_preNPS).split(".")[0] + "." + str(_preNPS).split(".")[1][0:2]
 
         _tempDiff   = 0
 
@@ -218,7 +261,7 @@ def muse_check(part:str):
             if _finalScore > diff:
                 _tempDiff = index + 1
 
-        _output = f"{part} | {_tempDiff} | {difficultyIcons[_tempDiff]} | {difficultyNames[_tempDiff]} | {_rawScore} | { _finalScore }"
+        _output = f"{part} | {_tempDiff} | {difficultyIcons[_tempDiff]} | {difficultyNames[_tempDiff]} | {_finalNPS} NPS | {_rawScore} | { _finalScore }"
         print(_output)
         output_add("muse_difficulties", f"{_output}")
 

@@ -268,7 +268,8 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         return False
     pass
 
-    muse_run()
+    if not ignoreChecks:
+        muse_run()
 
     # Output to json since we are done.
     # ========================================

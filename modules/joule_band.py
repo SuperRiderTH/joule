@@ -174,7 +174,7 @@ def initialize_band():
             last_time_signature_num        = 4
             last_time_signature_denom      = 4
 
-            print("Found " + track.name + "...")
+            #print("Found " + track.name + "...")
             joule_data.Tracks.append(track.name)
 
             if track.name in notesname_instruments_array:
@@ -596,7 +596,7 @@ pass
 
 def process_lyrics():
 
-    print("Extracting lyrics...")
+    #print("Extracting lyrics...")
 
     indexesVocalsOn        = get_data_indexes("trackNotesOn", 'PART VOCALS', 'phrase')
     indexesVocalsOff       = get_data_indexes("trackNotesOff", 'PART VOCALS', 'phrase')
@@ -649,7 +649,7 @@ pass
 
 def process_events():
 
-    print("Extracting events...")
+    #print("Extracting events...")
 
     indexesEvents          = get_data_indexes("trackNotesMeta", 'meta', 'events')
     events                 = []

@@ -589,6 +589,8 @@ def initialize_band():
     joule_data.GameData["tracks"] = joule_data.Tracks
     joule_data.GameData["tracksFound"] = joule_data.TracksFound
 
+    generate_seconds()
+
     return joule_data.GameData
 pass
 

@@ -33,6 +33,8 @@ Tracks              = []
 TracksFound         = []
 TicksPerBeat        = 0
 
+# Seconds is the time in seconds at each tick,
+# SecondsList is every changed whole second in ticks.
 Seconds             = []
 SecondsList         = []
 

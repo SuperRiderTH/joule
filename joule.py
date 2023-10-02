@@ -17,6 +17,7 @@ import joule_data
 from joule_system import *
 from joule_band import *
 from joule_band_rbn import *
+from joule_muse import *
 
 __version__ = joule_data.Version
 
@@ -144,7 +145,6 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         initTest = initialize_band()
 
         if initTest != False:
-            generate_seconds()
             process_lyrics()
             process_events()
         
@@ -214,7 +214,6 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         initTest = initialize_band()
         
         if initTest != False:
-            generate_seconds()
             process_lyrics()
             process_events()
 
@@ -268,6 +267,8 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         print ("Invalid game specified!")
         return False
     pass
+
+    muse_run()
 
     # Output to json since we are done.
     # ========================================

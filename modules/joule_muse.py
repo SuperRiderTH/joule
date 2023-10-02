@@ -46,6 +46,16 @@ difficultyNames = [
         "Impossible",
 ]
 
+difficultyIcons = [
+        "○○○○○",
+        "◉○○○○",
+        "◉◉○○○",
+        "◉◉◉○○",
+        "◉◉◉◉○",
+        "◉◉◉◉◉",
+        "◍◍◍◍◍",
+]
+
 # Based on official instrument difficulty tier values.
 scoreThresholds = { 
     "Guitar":   [139,176,221,267,333,409],
@@ -121,6 +131,7 @@ def muse_check(part:str):
 
     base = get_source_data()
     diffHighest     = base.diff_highest
+    totalLength     = get_meta('TotalLength')
 
 
     currentInstrument = None
@@ -140,7 +151,12 @@ def muse_check(part:str):
     if currentInstrument != None:
         print(f"Analysing difficulty for {part}...")
 
-        score.update( { } )
+        score.update( { f"{part}":[] } )
+
+        _score = []
+
+        for index in range(totalLength):
+            _score.append(0)
         
         # Note grabbing
         if currentInstrument == "ProKeys":
@@ -183,11 +199,28 @@ def muse_check(part:str):
                 pass
 
                 currentNotes += notesOn.count(note)
+
+                _score[note] += scoreNote["Normal"]
+
+                if currentNotes > 1:
+                    _score[note] += scoreNote["Chord"] * currentNotes
+
             pass
 
         pass
 
-        output_add("muse_difficulties", f"{part} | {difficultyNames[0]} | {0}")
+        _rawScore   = sum(_score)
+        _finalScore = sum(_score) / len(joule_data.SecondsList)
+
+        _tempDiff   = 0
+
+        for index, diff in enumerate(scoreThresholds[currentInstrument]):
+            if _finalScore > diff:
+                _tempDiff = index + 1
+
+        _output = f"{part} | {_tempDiff} | {difficultyIcons[_tempDiff]} | {difficultyNames[_tempDiff]} | {_rawScore} | { _finalScore }"
+        print(_output)
+        output_add("muse_difficulties", f"{_output}")
 
     pass
 pass

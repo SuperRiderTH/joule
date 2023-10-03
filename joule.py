@@ -44,6 +44,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     joule_data.TracksFound.clear()
 
     joule_data.GameDataOutput  = {"issues_critical":{},"issues_major":{},"issues_minor":{},}
+    joule_data.GameDataLocation = gameDataLocation
 
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):

@@ -17,6 +17,8 @@ GameDataOutput  = {"issues_critical":{},"issues_major":{},"issues_minor":{},}
 GameSource      = ""
 GameSourceFull  = ""
 
+GameDataLocation = ""
+
 GameSourceList = {
     "rb3":"Rock Band 3",
     "rb2":"Rock Band 2",
@@ -55,3 +57,9 @@ GameSourceHasSongINI = {
 
 BrokenChordsAllowed     = False
 LowerHOPOsAllowed       = False
+
+museMatches = 0
+museCount   = 0
+
+museHigher  = 0
+museLower   = 0

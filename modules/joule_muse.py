@@ -4,6 +4,7 @@ the difficulty tiers of the GameData created by Joule.
 '''
 
 import joule_data
+import os
 
 from joule_system import *
 from joule_band_handlers import *
@@ -28,11 +29,9 @@ ValidTracks = [
 
 GuitarTracks = [
     "PART GUITAR",
-    "PART BASS",
     "PART RHYTHM",
     "Single",
     "DoubleGuitar",
-    "DoubleBass",
     "DoubleRhythm",
 ]
 
@@ -81,14 +80,14 @@ scoreSituation  = {}
 # TODO: Import vanilla RB3 files, determine scores.
 
 # All notes have a base score, that is adjusted by modifier scores.
-scoreNote["Normal"]     = 65
+scoreNote["Normal"]     = 70
 
 scoreNote["Chord"]      = 2
 scoreNote["Broken"]     = 10
 
-scoreNote["Sustain"]  = 0.1
+scoreNote["Sustain"]  = 0.2
 
-scoreNote["Limb"]       = 2
+scoreNote["Limb"]       = 4
 
 # In certain situations, we want to adjust the score of all notes.
 scoreSituation["Solo"] = 1
@@ -135,6 +134,10 @@ def muse_check(part:str):
     diffHighest     = base.diff_highest
     totalLength     = get_meta('TotalLength')
 
+    tierKnown           = None
+    gameDataDirectory   = os.path.dirname(joule_data.GameDataLocation)
+
+    partToFind          = None
 
     currentInstrument = None
 
@@ -146,11 +149,52 @@ def muse_check(part:str):
         currentInstrument = "Vocals"
     elif part in ( "PART KEYS", "Keyboard" ):
         currentInstrument = "Keys"
+    elif part in ( "PART BASS", "DoubleBass" ):
+        currentInstrument = "Bass"
     elif part.startswith("PART REAL_KEYS"):
         currentInstrument = "ProKeys"
     pass
 
     if currentInstrument != None:
+
+        if currentInstrument == "Guitar":
+            partToFind = "diff_guitar"
+        elif currentInstrument == "Drums":
+            partToFind = "diff_drums"
+        elif currentInstrument == "ProKeys":
+            partToFind = "diff_keys_real"
+        elif currentInstrument == "Keys":
+            partToFind = "diff_keys"
+        elif currentInstrument == "Bass":
+            partToFind = "diff_bass"
+        elif currentInstrument == "Vocals":
+            partToFind = "diff_vocals"
+
+        try:
+            _temp = open(gameDataDirectory + "/song.ini", mode="r")
+            _tempLines = _temp.readlines()
+
+            for line in _tempLines:
+                lineGroups = line_groups(line)
+
+                if lineGroups != None:
+
+                    keyCheck = lineGroups[0].strip().lower()
+
+                    if partToFind in keyCheck:
+                        tierKnown = int(lineGroups[1].strip())
+                        if tierKnown == -1:
+                            tierKnown = None
+                        else:
+                            joule_data.museCount += 1
+                        pass
+                    pass
+                pass
+
+        except OSError:
+            pass
+        pass
+        
         
         # Note grabbing
         if currentInstrument == "ProKeys":
@@ -224,7 +268,17 @@ def muse_check(part:str):
                 _nps[currentPosition] += 1
 
                 if currentNotes > 1:
-                    _score[note] += scoreNote["Chord"] * currentNotes
+
+                    noteType = None
+
+                    if currentInstrument == "Drums":
+                        noteType = "Limb"
+                    
+                    if currentInstrument == "Guitar":
+                        noteType = "Chord"
+
+                    if noteType != None:
+                        _score[note] += scoreNote[noteType] * currentNotes
 
             pass
 
@@ -261,7 +315,19 @@ def muse_check(part:str):
             if _finalScore > diff:
                 _tempDiff = index + 1
 
-        _output = f"{part} | {_tempDiff} | {difficultyIcons[_tempDiff]} | {difficultyNames[_tempDiff]} | {_finalNPS} NPS | {_rawScore} | { _finalScore }"
+        strDiff = str(_tempDiff)
+
+
+        if tierKnown != None:
+            strDiff += f" | Known: {tierKnown}"
+            if int(_tempDiff) == int(tierKnown):
+                joule_data.museMatches += 1
+            elif int(_tempDiff) > int(tierKnown):
+                joule_data.museHigher += 1
+            elif int(_tempDiff) < int(tierKnown):
+                joule_data.museLower += 1
+
+        _output = f"{part} | {strDiff} | {difficultyIcons[_tempDiff]} | {difficultyNames[_tempDiff]} | {_finalNPS} NPS | {_rawScore} | { _finalScore }"
         print(_output)
         output_add("muse_difficulties", f"{_output}")
 

@@ -1,6 +1,9 @@
 '''
 Muse is an assistant tool for Joule to automatically determine
 the difficulty tiers of the GameData created by Joule.
+
+This is incomplete, and will never be a perfect tool.
+
 '''
 
 import joule_data
@@ -75,24 +78,34 @@ tracks = []
 
 scoreNote       = {}
 scoreSituation  = {}
+scoreMultiplierOffset = {}
 
 # TODO: Score testing, literally all of it.
 # TODO: Import vanilla RB3 files, determine scores.
+    # Addendum: RB3 Tiers are actually plain wrong, 
+
+# Base score per each whole number of NPS.
+scoreNPS                = 80
 
 # All notes have a base score, that is adjusted by modifier scores.
-scoreNote["Normal"]     = 70
+scoreNote["Normal"]     = 0.1
+scoreNote["Kick"]       = 0.15
+scoreNote["Repeat"]     = -20
+scoreNote["Pattern"]     = -20
 
-scoreNote["Chord"]      = 2
-scoreNote["Broken"]     = 10
+scoreNote["Chord"]      = 0.1
+scoreNote["Broken"]     = 0.3
 
-scoreNote["Sustain"]  = 0.2
+scoreNote["Sustain"]    = 0.005
 
-scoreNote["Limb"]       = 4
+scoreNote["Limb"]       = 1
 
 # In certain situations, we want to adjust the score of all notes.
 scoreSituation["Solo"] = 1
 scoreSituation["Overdrive"] = -20
 scoreSituation["Unison"] = -50
+
+scoreMultiplierOffset["Drums"] = 0.60
 
 
 def muse_run(GameData = None):
@@ -110,7 +123,7 @@ def muse_run(GameData = None):
 
     joule_data.GameDataOutput.update( { "muse_difficulties":{} } )
 
-    print(f"Analysing difficulties...")
+    print(f"Analysing difficulties...\n")
 
     for part in joule_data.TracksFound:
         if part in ValidTracks:
@@ -123,7 +136,7 @@ pass
 
 def muse_check(part:str):
     
-    noteLength64 = joule_data.GameDataFile.ticks_per_beat / 16
+    noteLength64 = joule_data.TicksPerBeat / 16
     noteLength32 = noteLength64 * 2
     noteLength16 = noteLength64 * 4
 
@@ -157,18 +170,26 @@ def muse_check(part:str):
 
     if currentInstrument != None:
 
+        #print(f"{part}")
+
         if currentInstrument == "Guitar":
             partToFind = "diff_guitar"
+            partNotes = base.notes_lane
         elif currentInstrument == "Drums":
             partToFind = "diff_drums"
+            partNotes = base.notes_pads
         elif currentInstrument == "ProKeys":
             partToFind = "diff_keys_real"
+            partNotes = None
         elif currentInstrument == "Keys":
             partToFind = "diff_keys"
+            partNotes = base.notes_lane
         elif currentInstrument == "Bass":
             partToFind = "diff_bass"
+            partNotes = base.notes_lane
         elif currentInstrument == "Vocals":
             partToFind = "diff_vocals"
+            partNotes = None
 
         try:
             _temp = open(gameDataDirectory + "/song.ini", mode="r")
@@ -180,15 +201,14 @@ def muse_check(part:str):
                 if lineGroups != None:
 
                     keyCheck = lineGroups[0].strip().lower()
-
-                    if partToFind in keyCheck:
+                    
+                    if partToFind == keyCheck:
                         tierKnown = int(lineGroups[1].strip())
                         if tierKnown == -1:
                             tierKnown = None
-                        else:
-                            joule_data.museCount += 1
                         pass
                     pass
+
                 pass
 
         except OSError:
@@ -223,6 +243,12 @@ def muse_check(part:str):
         _nps            = []
         scoreSeconds    = []
 
+        noteMask = ""
+        noteMaskSame    = 0
+
+        noteMaskPattern = []
+        noteMaskPatternTemp = []
+
         for index in range(totalLength):
             _score.append(0)
 
@@ -242,11 +268,50 @@ def muse_check(part:str):
                     if lastNoteOff - lastNoteOn > sustainLimit:
                         for ind in range(lastNoteOn, lastNoteOff):
                             _score[ind] += scoreNote["Sustain"]
+                        pass
                     pass
+
                 pass
             pass
 
             if note in notesOn:
+
+                if partNotes != None:
+                    
+                    _noteMask = ""
+                    for _noteType in partNotes:
+                        if get_note_on(part,f"{toFind}_{_noteType}",note):
+                            _noteMask += "1"
+                        else:
+                            _noteMask += "0"
+                        pass
+                    pass
+
+                    for _noteType in base.notes_kick:
+                        if get_note_on(part,f"{toFind}_{_noteType}",note):
+                            _noteMask += "1"
+                        else:
+                            _noteMask += "0"
+                        pass
+                    pass
+
+                    if _noteMask != noteMask:
+                        noteMask = _noteMask
+                        noteMaskSame = 0
+                        '''
+                        if noteMaskPatternTemp != noteMaskPattern:
+                            noteMaskPattern = noteMaskPatternTemp
+                        elif len(noteMaskPatternTemp) > 2:
+                            _score[note] += scoreNote["Pattern"] * min(len(noteMaskPattern), 10)
+                            #print(f"Pattern Found \n{noteMaskPattern}")
+                            noteMaskPatternTemp = []
+                        '''
+                    else:
+                        noteMaskSame += 1
+                        _score[note] += ( scoreNote["Repeat"] * min(noteMaskSame, 4) )
+                        #noteMaskPatternTemp.append(noteMask)
+                    pass
+                pass
 
                 if currentNotes == 0:
                     lastNoteOn = note
@@ -256,8 +321,12 @@ def muse_check(part:str):
 
                 currentNotes += notesOn.count(note)
 
-                _score[note] += scoreNote["Normal"]
-
+                for _noteType in base.notes_kick:
+                    if get_note_on(part,f"{toFind}_{_noteType}",note):
+                        _score[note] += scoreNote["Kick"]
+                    pass
+                pass
+            
                 while index > joule_data.SecondsList[currentPosition]:
                     if currentPosition < len(joule_data.SecondsList)  - 1:
                         currentPosition += 1
@@ -279,6 +348,7 @@ def muse_check(part:str):
 
                     if noteType != None:
                         _score[note] += scoreNote[noteType] * currentNotes
+                pass
 
             pass
 
@@ -297,39 +367,67 @@ def muse_check(part:str):
                 else:
                     break
                 pass
+            pass
 
             scoreSeconds[currentPosition] += scoreAt
 
         pass
 
+        preScoreSeconds = scoreSeconds
+        scoreSeconds    = []
+
+        numOfEmptySeconds = 0
+        for index, scoreAt in enumerate(preScoreSeconds):
+            if scoreAt == 0:
+                numOfEmptySeconds += 1
+            else:
+                numOfEmptySeconds = 0
+
+            if numOfEmptySeconds < 6:
+                scoreSeconds.append(scoreAt)
+            pass
+        pass
+
+
         _rawScore   = sum(scoreSeconds)
-        _finalScore = sum(scoreSeconds) / len(scoreSeconds)
+
+        _averageScore = sum(scoreSeconds) / len(scoreSeconds)
+
+        if currentInstrument == "Drums":
+            _averageScore = _averageScore * scoreMultiplierOffset["Drums"]
 
         _preNPS     = sum(_nps) / len(scoreSeconds)
 
-        _finalNPS   = str(_preNPS).split(".")[0] + "." + str(_preNPS).split(".")[1][0:2]
+        _calcScoreNPS   = scoreNPS * _preNPS
+
+        # Weigh the length of the song against drums
+        if currentInstrument == "Drums":
+            _calcScoreNPS = _calcScoreNPS * ( 1 + ( len(scoreSeconds) * 0.0005 )  )
+
+        _finalScore     = _calcScoreNPS + _averageScore
+
+        _finalNPS   = cleaner_decimal(_preNPS)
 
         _tempDiff   = 0
 
         for index, diff in enumerate(scoreThresholds[currentInstrument]):
             if _finalScore > diff:
                 _tempDiff = index + 1
+            else:
+                continue
+            pass
 
         strDiff = str(_tempDiff)
 
 
         if tierKnown != None:
             strDiff += f" | Known: {tierKnown}"
-            if int(_tempDiff) == int(tierKnown):
-                joule_data.museMatches += 1
-            elif int(_tempDiff) > int(tierKnown):
-                joule_data.museHigher += 1
-            elif int(_tempDiff) < int(tierKnown):
-                joule_data.museLower += 1
 
-        _output = f"{part} | {strDiff} | {difficultyIcons[_tempDiff]} | {difficultyNames[_tempDiff]} | {_finalNPS} NPS | {_rawScore} | { _finalScore }"
+        _output = f"{part} | {strDiff} | {difficultyIcons[_tempDiff]} | {difficultyNames[_tempDiff]}\n{cleaner_decimal(_finalNPS)} NPS\n{ cleaner_decimal(_averageScore) } Average Score | {cleaner_decimal(_calcScoreNPS)} Calculated NPS Score\n{cleaner_decimal(_finalScore)} Final Score\n"
         print(_output)
-        output_add("muse_difficulties", f"{_output}")
+
+        _outputFile = f"{part} | {strDiff} | {cleaner_decimal(_finalNPS)} NPS | {cleaner_decimal(_finalScore)} Score"
+        output_add("muse_difficulties", f"{_outputFile}")
 
     pass
 pass

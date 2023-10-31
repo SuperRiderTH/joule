@@ -67,7 +67,7 @@ def validate_sustains(partname:str, isRealKeys=False):
 
     global notename_array
 
-    noteLength64 = joule_data.GameDataFile.ticks_per_beat / 16
+    noteLength64 = joule_data.TicksPerBeat / 16
     noteLength32 = noteLength64 * 2
     noteLength16 = noteLength64 * 4
 

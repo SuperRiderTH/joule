@@ -1,10 +1,12 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 1
-MinorVersion    = 0
+MinorVersion    = 1
 PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
+
+AllowMuse       = False
 
 # Verbosity of the debug output.
 Debug           = 2
@@ -57,9 +59,3 @@ GameSourceHasSongINI = {
 
 BrokenChordsAllowed     = False
 LowerHOPOsAllowed       = False
-
-museMatches = 0
-museCount   = 0
-
-museHigher  = 0
-museLower   = 0

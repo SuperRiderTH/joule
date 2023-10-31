@@ -109,3 +109,27 @@ def format_seconds( note_location:int ):
     return time_string_1 + "." +time_string_2
 
 pass
+
+def get_note_on(part:str, note:str, time:int):
+
+    try:
+        _tempData = joule_data.GameData["trackNotesOn"][part,note,time]
+    except KeyError:
+        return False
+    else:
+        return _tempData
+    pass
+
+pass
+
+def get_note_off(part:str, note:str, time:int):
+
+    try:
+        _tempData = joule_data.GameData["trackNotesOff"][part,note,time]
+    except KeyError:
+        return False
+    else:
+        return _tempData
+    pass
+
+pass

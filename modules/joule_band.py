@@ -67,7 +67,7 @@ def section_read( line_start:int ):
     inSection = False
     sectionData = []
 
-    sectionName = joule_data.GameDataFile[line_start].strip()[1:-1]
+    sectionName = re.search(r"(?:\ *)(?:\[+)(.+)(?:\])", joule_data.GameDataFile[line_start]).groups()[0]
 
     print("Found " + sectionName + "...")
     joule_data.Tracks.append(sectionName)
@@ -300,19 +300,20 @@ def initialize_band():
         notename_chart_phrase = base.notename_chart_phrase
 
         # Parse the .chart, obtain all the section data.
-        for i in range(0, len(joule_data.GameDataFile)):
 
-            line = joule_data.GameDataFile[i]
-
+        for index, line in enumerate(joule_data.GameDataFile):
             # We don't want zero width spaces here. Get rid of them.
             if chr(65279) in line:
-                joule_data.GameDataFile[i] = line.replace(chr(65279), '')
-                line = joule_data.GameDataFile[i]
+                joule_data.GameDataFile[index] = line.replace(chr(65279), '')
+                line = joule_data.GameDataFile[index]
 
             # If we find a section, read the info.
-            if line.strip().startswith("["):
-                section_read(i)
+            test = re.search(r"(?:\ *)(?:\[+)(.+)(?:\])", line)
+
+            if test != None:
+                section_read(index)
             pass
+
         pass
 
         # Translate the chart into our format for processing.
@@ -556,8 +557,6 @@ def initialize_band():
 
         pass
 
-        output_add("debug_1",f"TotalLength: {get_meta('TotalLength')}")
-
     pass
 
     #print ("========================================")
@@ -590,6 +589,9 @@ def initialize_band():
     joule_data.GameData["tracksFound"] = joule_data.TracksFound
 
     generate_seconds()
+
+    output_add("info",f"Length: {format_seconds(get_meta('TotalLength'))}")
+    output_add("debug_1",f"TotalLength: {get_meta('TotalLength')}")
 
     return joule_data.GameData
 pass

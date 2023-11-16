@@ -1,7 +1,7 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 1
-MinorVersion    = 1
+MinorVersion    = 2
 PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
@@ -15,7 +15,7 @@ GameDataFile        = None
 GameDataFileType    = "NONE"
 
 GameData        = {}
-GameDataOutput  = {"issues_critical":{},"issues_major":{},"issues_minor":{},}
+GameDataOutput  = {}
 GameSource      = ""
 GameSourceFull  = ""
 

@@ -77,7 +77,6 @@ def generate_seconds():
             seconds_list.append(test)
             #print(f"{test} : {seconds_final}")
 
-    output_add("debug_1",f"TotalLength: {get_meta('TotalLength')} | {format_seconds(get_meta('TotalLength'))}")
     joule_data.SecondsList = seconds_list
     return True
 

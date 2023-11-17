@@ -1,10 +1,12 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 1
-MinorVersion    = 0
+MinorVersion    = 4
 PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
+
+AllowMuse       = False
 
 # Verbosity of the debug output.
 Debug           = 2
@@ -13,9 +15,11 @@ GameDataFile        = None
 GameDataFileType    = "NONE"
 
 GameData        = {}
-GameDataOutput  = {"issues_critical":{},"issues_major":{},"issues_minor":{},}
+GameDataOutput  = {}
 GameSource      = ""
 GameSourceFull  = ""
+
+GameDataLocation = ""
 
 GameSourceList = {
     "rb3":"Rock Band 3",
@@ -33,6 +37,8 @@ Tracks              = []
 TracksFound         = []
 TicksPerBeat        = 0
 
+# Seconds is the time in seconds at each tick,
+# SecondsList is every changed whole second in ticks.
 Seconds             = []
 SecondsList         = []
 

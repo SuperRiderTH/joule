@@ -17,6 +17,7 @@ import joule_data
 from joule_system import *
 from joule_band import *
 from joule_band_rbn import *
+from joule_muse import *
 
 __version__ = joule_data.Version
 
@@ -42,7 +43,11 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     joule_data.Tracks.clear()
     joule_data.TracksFound.clear()
 
-    joule_data.GameDataOutput  = {"issues_critical":{},"issues_major":{},"issues_minor":{},}
+    joule_data.GameDataOutput.update( { "info":{} } )
+    joule_data.GameDataOutput.update( { "issues_critical":{}, "issues_major":{}, "issues_minor":{} } )
+    joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )
+
+    joule_data.GameDataLocation = gameDataLocation
 
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):
@@ -84,7 +89,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # ========================================
     try:
         if fileType == "MIDI":
-            joule_data.GameDataFile = MidiFile(gameDataLocation)
+            joule_data.GameDataFile = MidiFile(gameDataLocation, clip=True)
         elif fileType == "CHART":
             _temp = open(gameDataLocation, mode="r")
             joule_data.GameDataFile = _temp.readlines()
@@ -100,8 +105,9 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     joule_data.GameSourceFull = joule_data.GameSourceList[joule_data.GameSource]
 
     print(f"Game Source: {joule_data.GameSourceFull}")
-    output_add("debug_1",f"Version: {joule_data.Version}")
-    output_add("debug_1",f"GameSource: {joule_data.GameSourceFull}")
+    output_add("info",f"Joule Version: {joule_data.Version}")
+    output_add("info",f"Source: {joule_data.GameSourceFull}")
+    output_add("debug_1",f"GameSource: {joule_data.GameSource}")
 
     # Game specific checks
     # ========================================
@@ -139,12 +145,9 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     
     if joule_data.GameSource in joule_data.GameSourceRBLike:
         
-        joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )
-        
         initTest = initialize_band()
 
         if initTest != False:
-            generate_seconds()
             process_lyrics()
             process_events()
         
@@ -161,6 +164,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                         rbn_guitar_chords(part)
                         rbn_hopos(part)
                         validate_sustains(part)
+                        validate_open_notes(part)
                     pass
 
                     if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
@@ -199,7 +203,6 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     elif joule_data.GameSource == "ch" or joule_data.GameSource == "ghwtde":
         
         joule_data.GameData["sections"] = {}
-        joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )
         
         GuitarTracks = [
                 "PART GUITAR",
@@ -214,7 +217,6 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         initTest = initialize_band()
         
         if initTest != False:
-            generate_seconds()
             process_lyrics()
             process_events()
 
@@ -230,6 +232,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                         rbn_guitar_chords(part)
                         rbn_hopos(part)
                         validate_sustains(part)
+                        validate_open_notes(part)
                     pass
 
                     if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
@@ -269,6 +272,9 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         return False
     pass
 
+    if not ignoreChecks and joule_data.AllowMuse:
+        muse_run()
+
     # Output to json since we are done.
     # ========================================
     
@@ -297,10 +303,12 @@ if __name__ == "__main__":
   
     # Set the file type that we are reading.
     # ========================================
+
+    _location = argLocation.lower()
     
-    if argLocation.endswith(".mid") or argLocation.endswith(".midi"):
+    if _location.endswith(".mid") or _location.endswith(".midi"):
         joule_data.GameDataFileType = "MIDI"
-    elif argLocation.endswith(".chart"):
+    elif _location.endswith(".chart"):
         joule_data.GameDataFileType = "CHART"
     else:
         joule_data.GameDataFileType = "BINARY"

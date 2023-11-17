@@ -409,88 +409,58 @@ pass
 def rbn_guitar_chords(partname:str):
     set_source_data()
 
-    notesOn = {}
-    notesOff = {}
-
-    notesOnDiff = {}
-    notesOffDiff = {}
-    notesAllDiff = {}
-
-    notesOnHighest = sorted( set( get_data_indexes("trackNotesOn",partname,f"{diff_highest}") ) )
-
-    # Init the notes for each difficulty.
-    # ========================================
-
     for diff in diff_array:
 
-        notesOnDiff[diff] = {}
-        notesOffDiff[diff] = {}
-        notesAllDiff[diff] = {}
+        # Run broken chord checks
+        rbn_broken_chords(partname,diff)
 
-        for note in notes_lane:
-            notesOnDiff[diff].update( { f"{note}" : get_data_indexes("trackNotesOn",partname,f"{diff}_{note}") } )
-            notesOffDiff[diff].update( { f"{note}" : get_data_indexes("trackNotesOff",partname,f"{diff}_{note}") } )
-            notesAllDiff[diff] = sorted(set( get_data_indexes("trackNotesOn",partname,f"{diff}") + get_data_indexes("trackNotesOff",partname,f"{diff}") ))
-        pass
-    pass
-
-    for diff in diff_array:
-
+        notesAll = sorted(set( get_data_indexes("trackNotesOn",partname,f"{diff}") + get_data_indexes("trackNotesOff",partname,f"{diff}") ))
+    
         if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) < 2:
             output_add("debug_3", f"{partname} | rbn_guitar_chords | No notes found on {diff_array[diff]}.")
             continue
 
         print(f"Processsing chords for {partname} on {diff_array[diff]}...")
 
-        notesOn      = notesOnDiff[diff]
-        notesOff     = notesOffDiff[diff]
+        for note in notesAll:
 
-        # notesAll is a list of every position where there is a note on and off, without any duplicates.
-        notesAll      = notesAllDiff[diff]
+            # Green Orange chord detection
+            # ========================================
+            if get_note_on( partname, f"{diff}_{"orange"}", note):
+                if get_note_on( partname, f"{diff}_{"green"}", note):
+                    
+                    if get_note_on( partname, f"{diff}_{"red"}", note)\
+                    or get_note_on( partname, f"{diff}_{"yellow"}", note)\
+                    or get_note_on( partname, f"{diff}_{"blue"}", note):
+                        output_add("issues_major", f"{partname} | {format_location(note)} | Found note paired with Green and Orange gems on {diff_array[diff]}.")
+                    pass
 
-
-        # Green Orange chord detection
-        # ========================================
-
-        for note in notesOn["orange"]:
-            if note in notesOn["green"]:
-                if note in notesOn["red"] or note in notesOn["yellow"] or note in notesOn["blue"]:
-                    output_add("issues_major", f"{partname} | {format_location(note)} | Found note paired with Green and Orange gems on {diff_array[diff]}.")
-                pass
-
-                # Green Orange chords are not allowed on anything below Expert.
-                if diff != "x":
-                    output_add("issues_major", f"{partname} | {format_location(note)} | Green and Orange chords are not allowed on {diff_array[diff]}.")
+                    # Green Orange chords are not allowed on anything below Expert.
+                    if diff != "x":
+                        output_add("issues_major", f"{partname} | {format_location(note)} | Green and Orange chords are not allowed on {diff_array[diff]}.")
+                    pass
                 pass
             pass
-        pass
 
-
-        rbn_broken_chords(partname,diff)
-
-        # Chord note counting
-        # ========================================
-
-        for note in notesAll:
             noteCount = 0
             noteCountHighest = 0
 
             for noteLane in notes_lane:
-                if note in notesOn[noteLane]:
+                if get_note_on( partname, f"{diff}_{noteLane}", note):
                     noteCount += 1
+                pass
+            pass
 
             # If there isn't any notes here, skip the rest.
             if noteCount == 0:
                 continue
-
-
+            
             if diff != diff_highest:
-
                 # If chords are not allowed, we skip checking.
                 if chord_limit[diff] > 1:
 
-                    for noteLaneHighest in notes_lane:
-                        if note in notesOnDiff[diff_highest][noteLaneHighest]:
+                    for noteLane in notes_lane:
+                        if get_note_on( partname, f"{diff_highest}_{noteLane}", note):
                             noteCountHighest += 1
                         pass
                     pass
@@ -503,7 +473,8 @@ def rbn_guitar_chords(partname:str):
                     pass
                 pass
             pass
-
+        pass
+ 
     return
 
 pass

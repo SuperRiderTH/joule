@@ -108,7 +108,7 @@ pass
 
 def line_groups(inputStr:str):
 
-    test = re.search("(?:\ *)([^\s=]+)(?:\s*)(?:={1})(?:\ *)(.+)", inputStr)
+    test = re.search(r"(?:\ *)([^\s=]+)(?:\s*)(?:={1})(?:\ *)(.+)", inputStr)
 
     if test != None:
         lineGroups = test.groups()
@@ -117,4 +117,16 @@ def line_groups(inputStr:str):
         return None
     pass
 
+pass
+
+def cleaner_decimal(input):
+
+    _input = str(input)
+
+    if "." in _input:
+        return _input.split(".")[0] + "." + _input.split(".")[1][0:2]
+    else:
+        return _input
+    pass
+    
 pass

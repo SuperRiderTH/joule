@@ -67,7 +67,7 @@ def section_read( line_start:int ):
     inSection = False
     sectionData = []
 
-    sectionName = joule_data.GameDataFile[line_start].strip()[1:-1]
+    sectionName = re.search(r"(?:\ *)(?:\[+)(.+)(?:\])", joule_data.GameDataFile[line_start]).groups()[0]
 
     print("Found " + sectionName + "...")
     joule_data.Tracks.append(sectionName)
@@ -135,7 +135,7 @@ def initialize_band():
 
         # Rock Band expects 480 ticks per QN.
         # This should not have made it through Magma, but just in case.
-        if joule_data.GameSource == "rb3" or "rb2":
+        if joule_data.GameSource == "rb3" or joule_data.GameSource == "rb2":
             if joule_data.TicksPerBeat != 480:
                 output_add("issues_critical", "Ticks per Quarter Note is not 480.")
             pass
@@ -174,7 +174,7 @@ def initialize_band():
             last_time_signature_num        = 4
             last_time_signature_denom      = 4
 
-            print("Found " + track.name + "...")
+            #print("Found " + track.name + "...")
             joule_data.Tracks.append(track.name)
 
             if track.name in notesname_instruments_array:
@@ -265,6 +265,16 @@ def initialize_band():
                 elif msg.type == 'set_tempo':
                     trackNotesMeta["meta","tempo",trackTime] = msg.tempo
 
+                elif msg.type == 'sysex':
+                    try:
+                        len(trackNotesMeta[track.name,"sysex",trackTime])
+                    except:
+                        trackNotesMeta[track.name,"sysex",trackTime] = [ msg.data ]
+                    else:
+                        trackNotesMeta[track.name,"sysex",trackTime].append(msg.data)
+                    pass
+                    #print(f"{msg.data}")
+
                 elif msg.type == 'end_of_track':
                     trackNotesMeta[track.name,"length",0] = trackTime
                     continue
@@ -300,19 +310,23 @@ def initialize_band():
         notename_chart_phrase = base.notename_chart_phrase
 
         # Parse the .chart, obtain all the section data.
-        for i in range(0, len(joule_data.GameDataFile)):
 
-            line = joule_data.GameDataFile[i]
-
+        for index, line in enumerate(joule_data.GameDataFile):
             # We don't want zero width spaces here. Get rid of them.
             if chr(65279) in line:
-                joule_data.GameDataFile[i] = line.replace(chr(65279), '')
-                line = joule_data.GameDataFile[i]
+                joule_data.GameDataFile[index] = line.replace(chr(65279), '')
+                line = joule_data.GameDataFile[index]
 
             # If we find a section, read the info.
-            if line.strip().startswith("["):
-                section_read(i)
+            test = None
+
+            if "=" not in line:
+                test = re.search(r"(?:\ *)(?:\[+)(.+)(?:\])", line)
+
+            if test != None:
+                section_read(index)
             pass
+
         pass
 
         # Translate the chart into our format for processing.
@@ -556,8 +570,6 @@ def initialize_band():
 
         pass
 
-        output_add("debug_1",f"TotalLength: {get_meta('TotalLength')}")
-
     pass
 
     #print ("========================================")
@@ -589,12 +601,17 @@ def initialize_band():
     joule_data.GameData["tracks"] = joule_data.Tracks
     joule_data.GameData["tracksFound"] = joule_data.TracksFound
 
+    generate_seconds()
+
+    output_add("info",f"Length: {format_seconds(get_meta('TotalLength'))}")
+    output_add("debug_1",f"TotalLength: {get_meta('TotalLength')}")
+
     return joule_data.GameData
 pass
 
 def process_lyrics():
 
-    print("Extracting lyrics...")
+    #print("Extracting lyrics...")
 
     indexesVocalsOn        = get_data_indexes("trackNotesOn", 'PART VOCALS', 'phrase')
     indexesVocalsOff       = get_data_indexes("trackNotesOff", 'PART VOCALS', 'phrase')
@@ -647,7 +664,7 @@ pass
 
 def process_events():
 
-    print("Extracting events...")
+    #print("Extracting events...")
 
     indexesEvents          = get_data_indexes("trackNotesMeta", 'meta', 'events')
     events                 = []
@@ -697,4 +714,37 @@ def process_events():
     joule_data.GameData["events"] = events
 
     return
+pass
+
+
+def validate_open_notes(partname:str):
+    base = get_source_data()
+    diff_array = base.diff_array
+
+    # If we are using MIDI as our base, we want to check to make sure
+    # we are using ENHANCED_OPENS.
+
+    if joule_data.GameDataFileType == "MIDI":
+        enhancedOpens = False
+
+        try:
+            len( trackNotesMeta[partname, "text", 0] )
+        except:
+            enhancedOpens = False
+        else:
+            if "[ENHANCED_OPENS]" in trackNotesMeta[partname, "text", 0]:
+                enhancedOpens = True
+                return
+            pass
+        pass
+
+        for diff in diff_array:
+            if len( get_data_indexes( "trackNotesOn", partname, f"{diff}_open" ) ) > 0:
+                if enhancedOpens == False:
+                    output_add("issues_critical", f"{partname} | Open notes found without ENHANCED_OPENS on {diff_array[diff]}.")
+                pass
+            pass
+        pass
+
+    pass
 pass

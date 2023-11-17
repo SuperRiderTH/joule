@@ -77,7 +77,6 @@ def generate_seconds():
             seconds_list.append(test)
             #print(f"{test} : {seconds_final}")
 
-    output_add("debug_1",f"TotalLength: {get_meta('TotalLength')} | {format_seconds(get_meta('TotalLength'))}")
     joule_data.SecondsList = seconds_list
     return True
 
@@ -107,5 +106,29 @@ def format_seconds( note_location:int ):
 
     time_string_2 = time_string.split(".")[1][0:3]
     return time_string_1 + "." +time_string_2
+
+pass
+
+def get_note_on(part:str, note:str, time:int):
+
+    try:
+        _tempData = joule_data.GameData["trackNotesOn"][part,note,time]
+    except KeyError:
+        return False
+    else:
+        return _tempData
+    pass
+
+pass
+
+def get_note_off(part:str, note:str, time:int):
+
+    try:
+        _tempData = joule_data.GameData["trackNotesOff"][part,note,time]
+    except KeyError:
+        return False
+    else:
+        return _tempData
+    pass
 
 pass

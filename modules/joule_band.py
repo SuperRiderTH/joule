@@ -124,6 +124,7 @@ def initialize_band():
     notesname_instruments_array = base.notesname_instruments_array
     notename_array = base.notename_array
     diff_array = base.diff_array
+    notes_lane = base.notes_lane
 
     # MIDI Processing
     # ========================================
@@ -273,7 +274,18 @@ def initialize_band():
                     else:
                         trackNotesMeta[track.name,"sysex",trackTime].append(msg.data)
                     pass
-                    #print(f"{msg.data}")
+
+                    # If we find tap note modifiers, we want to translate that.
+                    if msg.data[5] == 4:
+                        if msg.data[6] == 1:
+                            trackNotesOn[ track.name, "tap", trackTime ] = True
+                            #print("Tap On")
+                        if msg.data[6] == 0:
+                            trackNotesOff[ track.name, "tap", trackTime ] = True
+                            #print("Tap Off")
+                    else:
+                        pass
+                        #print(f"{msg.data}")
 
                 elif msg.type == 'end_of_track':
                     trackNotesMeta[track.name,"length",0] = trackTime
@@ -600,6 +612,70 @@ def initialize_band():
     
     joule_data.GameData["tracks"] = joule_data.Tracks
     joule_data.GameData["tracksFound"] = joule_data.TracksFound
+
+
+    # SysEx Event handling.
+    if joule_data.GameDataFileType == "MIDI":
+
+        for track in joule_data.TracksFound:
+            try:
+                len(get_data_indexes("trackNotesMeta", track, "sysex"))
+            except:
+                pass
+            else:
+
+                notesSysEx = get_data_indexes("trackNotesMeta", track, "sysex")
+
+                if len(notesSysEx) > 0:
+                    print(f"SysEx Messages detected in {track}, modifying notes...")
+
+                    inOpen = False
+
+                    for diff in diff_array:
+                        notesOn     = get_data_indexes("trackNotesOn", track, diff)
+                        notesOff    = get_data_indexes("trackNotesOff", track, diff)
+                        notesAll    = sorted( set( notesOn + notesOff + notesSysEx ) )
+                    
+                    for note in notesAll:
+
+                        if note in notesSysEx:
+                            data = trackNotesMeta[track,"sysex",note]
+
+                            for entry in data:
+                                # Open Notes are 1, Starts with 1, Ends with 0.
+                                if entry[5] == 1:
+                                    if entry[6] == 1:
+                                        inOpen = True
+                                    if entry[6] == 0:
+                                        inOpen = False
+                                    pass
+                                pass
+                            pass
+                        pass
+
+                        # Modify any notes that are in-between Open markers to be Open notes.
+                        for noteLane in notes_lane:
+                            if inOpen:
+                                if get_note_on( track, f"{diff}_{noteLane}", note):
+                                    trackNotesOn[ track, f"{diff}_{noteLane}", note ] = False
+                                    trackNotesOn[ track, f"{diff}_{"open"}", note ] = True
+                                pass
+                                if get_note_off( track, f"{diff}_{noteLane}", note):
+                                    trackNotesOff[ track, f"{diff}_{noteLane}", note ] = False
+                                    trackNotesOff[ track, f"{diff}_{"open"}", note ] = True
+                                pass
+                            pass
+                        pass
+
+                    pass
+
+                    # Since we are making changes, make sure to re-write this.
+                    joule_data.GameData["trackNotesOn"] = trackNotesOn
+                    joule_data.GameData["trackNotesOff"] = trackNotesOff
+                pass
+            pass
+        pass
+    pass
 
     generate_seconds()
 

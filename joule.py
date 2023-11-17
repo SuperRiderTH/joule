@@ -89,7 +89,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # ========================================
     try:
         if fileType == "MIDI":
-            joule_data.GameDataFile = MidiFile(gameDataLocation)
+            joule_data.GameDataFile = MidiFile(gameDataLocation, clip=True)
         elif fileType == "CHART":
             _temp = open(gameDataLocation, mode="r")
             joule_data.GameDataFile = _temp.readlines()
@@ -164,6 +164,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                         rbn_guitar_chords(part)
                         rbn_hopos(part)
                         validate_sustains(part)
+                        validate_open_notes(part)
                     pass
 
                     if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
@@ -231,6 +232,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                         rbn_guitar_chords(part)
                         rbn_hopos(part)
                         validate_sustains(part)
+                        validate_open_notes(part)
                     pass
 
                     if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):

@@ -135,7 +135,7 @@ def initialize_band():
 
         # Rock Band expects 480 ticks per QN.
         # This should not have made it through Magma, but just in case.
-        if joule_data.GameSource == "rb3" or "rb2":
+        if joule_data.GameSource == "rb3" or joule_data.GameSource == "rb2":
             if joule_data.TicksPerBeat != 480:
                 output_add("issues_critical", "Ticks per Quarter Note is not 480.")
             pass
@@ -264,6 +264,16 @@ def initialize_band():
 
                 elif msg.type == 'set_tempo':
                     trackNotesMeta["meta","tempo",trackTime] = msg.tempo
+
+                elif msg.type == 'sysex':
+                    try:
+                        len(trackNotesMeta[track.name,"sysex",trackTime])
+                    except:
+                        trackNotesMeta[track.name,"sysex",trackTime] = [ msg.data ]
+                    else:
+                        trackNotesMeta[track.name,"sysex",trackTime].append(msg.data)
+                    pass
+                    #print(f"{msg.data}")
 
                 elif msg.type == 'end_of_track':
                     trackNotesMeta[track.name,"length",0] = trackTime
@@ -704,4 +714,37 @@ def process_events():
     joule_data.GameData["events"] = events
 
     return
+pass
+
+
+def validate_open_notes(partname:str):
+    base = get_source_data()
+    diff_array = base.diff_array
+
+    # If we are using MIDI as our base, we want to check to make sure
+    # we are using ENHANCED_OPENS.
+
+    if joule_data.GameDataFileType == "MIDI":
+        enhancedOpens = False
+
+        try:
+            len( trackNotesMeta[partname, "text", 0] )
+        except:
+            enhancedOpens = False
+        else:
+            if "[ENHANCED_OPENS]" in trackNotesMeta[partname, "text", 0]:
+                enhancedOpens = True
+                return
+            pass
+        pass
+
+        for diff in diff_array:
+            if len( get_data_indexes( "trackNotesOn", partname, f"{diff}_open" ) ) > 0:
+                if enhancedOpens == False:
+                    output_add("issues_critical", f"{partname} | Open notes found without ENHANCED_OPENS on {diff_array[diff]}.")
+                pass
+            pass
+        pass
+
+    pass
 pass

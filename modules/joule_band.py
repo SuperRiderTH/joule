@@ -308,7 +308,10 @@ def initialize_band():
                 line = joule_data.GameDataFile[index]
 
             # If we find a section, read the info.
-            test = re.search(r"(?:\ *)(?:\[+)(.+)(?:\])", line)
+            test = None
+
+            if "=" not in line:
+                test = re.search(r"(?:\ *)(?:\[+)(.+)(?:\])", line)
 
             if test != None:
                 section_read(index)

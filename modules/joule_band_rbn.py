@@ -674,7 +674,6 @@ def rbn_drums_fills(partname:str):
 
 pass
 
-# template function
 def validate_instrument_phrases():
     set_source_data()
 
@@ -889,6 +888,116 @@ def rbn_broken_chords(partname:str, diff:str):
     return
 pass
 
+def rbn_keys_real_shifts(partname:str):
+    set_source_data()
+    print(f"Processsing ranges for {partname}...")
+
+    noteLength64    = joule_data.TicksPerBeat / 16
+    noteLength16    = noteLength64 * 4
+    diff = partname[len(partname)-1].lower()
+
+    # The amount of time that notes can be seen on screen in seconds.
+    laneLength      = 1.5
+
+    noteRangeIndex  = [57,55,53,52,50,48]
+    noteRangeNames  = [
+        "range_a2_c4",
+        "range_g2_b3",
+        "range_f2_a3",
+        "range_e2_g3",
+        "range_d2_f3",
+        "range_c2_e3"
+    ]
+
+    noteRange       = [ [],[],[],[],[],[] ]
+
+    # Generate a list of vaild notes to check for.
+    noteKeys = []
+
+    for note in notename_array["PROKEYS"]:
+
+        # Create Note Ranges
+        for index, noteRangeCheck in enumerate(noteRangeIndex):
+            if note >= noteRangeCheck:
+                if note <= noteRangeCheck + 16:
+                    noteRange[index].append(notename_array["PROKEYS"][note])
+                pass
+            pass
+        pass
+
+        # Create Notes
+        if notename_array["PROKEYS"][note].startswith("note"):
+            noteKeys.append(notename_array["PROKEYS"][note])
+        pass
+
+    pass
+
+
+    # Create a list of all the notes we are looking for.
+    notesOn         = get_data_indexes( "trackNotesOn",    partname, "note" )
+    notesOff        = get_data_indexes( "trackNotesOff",   partname, "note" )
+    notesOnRanges   = get_data_indexes( "trackNotesOn",    partname, "range" )
+
+    notesAll        = sorted( set( notesOn + notesOff + notesOnRanges ) )
+
+    notesHappening  = []
+
+    currentRangeTime    = 0
+    currentRange        = []
+    pastRange           = []
+
+    # Check the notes
+    for note in notesAll:
+
+        if note in notesOff:
+            for key in noteKeys:
+                if get_note_off(partname,key,note):
+                    notesHappening.remove(key)
+                pass
+            pass
+        pass
+
+        if note in notesOn:
+            for key in noteKeys:
+                if get_note_on(partname,key,note):
+                    notesHappening.append(key)
+
+                    if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + laneLength ):
+                        if key not in pastRange:
+                            output_add("issues_major", f"{partname} | {format_location(note)} | Note appears off the Lane on {diff_array[diff]}.")
+                            output_add("debug_3", f"{format_location(note)} | {joule_data.Seconds[note]} - {( joule_data.Seconds[currentRangeTime] + laneLength )} | {key}")
+                        pass
+                    pass
+
+                pass
+            pass
+        pass
+
+        if note in notesOnRanges:
+            for nRange in noteRangeNames:
+                if get_note_on(partname,nRange,note):
+                    pastRange = currentRange
+
+                    currentRange = noteRange[noteRangeNames.index(nRange)]
+                    currentRangeTime = note
+                    
+                    for happen in notesHappening:
+                        if happen not in currentRange:
+                            output_add("issues_major", f"{partname} | {format_location(note)} | Sustain appears off the Lane on {diff_array[diff]}.")
+                        pass
+                    pass
+
+                pass
+            pass
+        pass
+
+        #print(f"{format_location(note)} - {notesHappening}")
+
+    pass
+
+
+pass
+
 def rbn_keys_real_chords(partname:str):
     set_source_data()
 
@@ -916,7 +1025,7 @@ def rbn_keys_real_chords(partname:str):
         "range_f2_a3",
         "range_e2_g3",
         "range_d2_f3",
-        "range_c2_c3"
+        "range_c2_e3"
     ]
 
     notesOn.update( { "notes":[] } )

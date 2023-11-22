@@ -192,6 +192,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
                     if part.startswith("PART REAL_KEYS"):
                         rbn_keys_real_chords(part)
+                        rbn_keys_real_shifts(part)
                         validate_sustains(part, True)
                         pass
                     pass
@@ -260,6 +261,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
                     if part.startswith("PART REAL_KEYS"):
                         rbn_keys_real_chords(part)
+                        rbn_keys_real_shifts(part)
                         validate_sustains(part, True)
                         pass
                     pass

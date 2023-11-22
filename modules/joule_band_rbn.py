@@ -964,7 +964,7 @@ def rbn_keys_real_shifts(partname:str):
 
                     if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + laneLength ):
                         if key not in pastRange:
-                            output_add("issues_major", f"{partname} | {format_location(note)} | Note appears off the Lane on {diff_array[diff]}.")
+                            output_add("issues_major", f"{partname} | {format_location(note)} | Note appears off the Track on {diff_array[diff]}.")
                             output_add("debug_3", f"{format_location(note)} | {joule_data.Seconds[note]} - {( joule_data.Seconds[currentRangeTime] + laneLength )} | {key}")
                         pass
                     pass
@@ -983,7 +983,7 @@ def rbn_keys_real_shifts(partname:str):
                     
                     for happen in notesHappening:
                         if happen not in currentRange:
-                            output_add("issues_major", f"{partname} | {format_location(note)} | Sustain appears off the Lane on {diff_array[diff]}.")
+                            output_add("issues_major", f"{partname} | {format_location(note)} | Sustain appears off the Track on {diff_array[diff]}.")
                         pass
                     pass
 

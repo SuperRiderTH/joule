@@ -7,11 +7,6 @@ import joule_data_rockband
 import joule_data_clonehero
 import joule_data_yarg
 
-# We need this for later if HARM3 is accessed.
-indexesVocalPhrasesOn_HARM2 = []
-indexesVocalPhrasesOff_HARM2 = []
-
-
 def set_source_data():
 
     global notename_array
@@ -67,9 +62,13 @@ def validate_sustains(partname:str, isRealKeys=False):
 
     global notename_array
 
-    noteLength64 = joule_data.TicksPerBeat / 16
-    noteLength32 = noteLength64 * 2
-    noteLength16 = noteLength64 * 4
+    noteLength64    = joule_data.GameDataFile.ticks_per_beat / 16 #30, assuming 480.
+
+    noteLength32    = joule_data.GameDataFile.ticks_per_beat / 8  #60
+    noteLength32T   = joule_data.GameDataFile.ticks_per_beat / 12 #40
+
+    noteLength16    = joule_data.GameDataFile.ticks_per_beat / 4  #120
+    noteLength16T   = joule_data.GameDataFile.ticks_per_beat / 6  #80
 
     sustainLimit = get_meta('TicksSustainLimit')
     sustainMinimum = get_meta('SustainMinimum')
@@ -146,8 +145,8 @@ def validate_sustains(partname:str, isRealKeys=False):
                 if currentNotes == 0:
 
                     # Sustain gap Check
-                    if ( ( note - lastNoteOff ) < noteLength16 ) and lastNoteWasSustain:
-                        output_add("issues_major", f"{partname} | {format_location(note)} | Note on {diff_array[diff]} should have a 16th note gap from a sustain.")
+                    if ( ( note - lastNoteOff ) < noteLength32T ) and lastNoteWasSustain:
+                        output_add("issues_major", f"{partname} | {format_location(note)} | Note on {diff_array[diff]} should have a 32nd note gap from a sustain.")
                     pass
 
                     lastNoteOn = note
@@ -164,32 +163,32 @@ def validate_spacing_vocals(partname:str):
 
     global notename_array
 
-    noteLength64 = joule_data.GameDataFile.ticks_per_beat / 16
-    noteLength32 = noteLength64 * 2
-    noteLength16 = noteLength64 * 4
+    noteLength64    = joule_data.GameDataFile.ticks_per_beat / 16 #30, assuming 480.
+
+    noteLength32    = joule_data.GameDataFile.ticks_per_beat / 8  #60
+    noteLength32T   = joule_data.GameDataFile.ticks_per_beat / 12 #40
+
+    noteLength16    = joule_data.GameDataFile.ticks_per_beat / 4  #120
+    noteLength16T   = joule_data.GameDataFile.ticks_per_beat / 6  #80
 
     print(f"Processsing vocal note spacing for {partname}...")
 
-    global indexesVocalPhrasesOn_HARM2
-    global indexesVocalPhrasesOff_HARM2
+    # All harmonies must follow the Phrase Markers from HARM1.
+    if partname != "PART VOCALS":
+        _toFind = "HARM1"
+    else:
+        _toFind = partname
+    pass
 
-    indexesVocalPhrasesOn   = get_data_indexes("trackNotesOn", partname, 'phrase')
-    indexesVocalPhrasesOff  = get_data_indexes("trackNotesOff", partname, 'phrase')
-    indexesVocalsLyrics     = get_data_indexes("trackNotesLyrics", partname, 'lyrics')
+    indexesVocalPhrasesOn  = get_data_indexes("trackNotesOn", _toFind, 'phrase')
+    indexesVocalPhrasesOff = get_data_indexes("trackNotesOff", _toFind, 'phrase')
+    indexesVocalsLyrics    = get_data_indexes("trackNotesLyrics", partname, 'lyrics')
 
-
-    # Store this for HARM3 use.
-    if partname == "HARM2":
-        indexesVocalPhrasesOn_HARM2 = indexesVocalPhrasesOn
-        indexesVocalPhrasesOff_HARM2 = indexesVocalPhrasesOff
-
-    if partname == "HARM3":
-        if len(indexesVocalPhrasesOn_HARM2) > 0:
-            indexesVocalPhrasesOn = indexesVocalPhrasesOn_HARM2
-            indexesVocalPhrasesOff = indexesVocalPhrasesOff_HARM2
-        else:
-            return
+    if len(indexesVocalPhrasesOn) > 0:
         pass
+    else:
+        output_add("issues_critical", f"{_toFind} Phrase Markers do not exist! Spacing for {partname} can not be processed.")
+        return
     pass
 
 
@@ -201,7 +200,7 @@ def validate_spacing_vocals(partname:str):
 
     for index, note in enumerate(indexesVocalsOn):
         if index > 0:
-            if note < indexesVocalsOff[index - 1] + (noteLength32):
+            if note < indexesVocalsOff[index - 1] + (noteLength32T):
                 output_add("issues_major", f"{partname} | {format_location(note)} | Vocal notes should have a 32nd note gap from the previous note.")
 
     lastTime = 0
@@ -230,7 +229,7 @@ def validate_spacing_vocals(partname:str):
             if firstNote == True and index > 0:
                 if currentLyric.endswith('^') or currentLyric.endswith('#'):
                     if lastWordIsPitched:
-                        if indexesVocalPhrasesOn[index] < ( indexesVocalPhrasesOff[index - 1] + (noteLength16) ):
+                        if indexesVocalPhrasesOn[index] < ( indexesVocalPhrasesOff[index - 1] + (noteLength16T) ):
                             output_add("issues_critical", f"{partname} | {format_location(note)} | Spoken words starting a Phrase require a 16th note gap between Phrase Markers.")
 
             if currentLyric.endswith('^') or currentLyric.endswith('#'):
@@ -283,27 +282,22 @@ def rbn_vocals_lyrics(partname:str):
     print(f"Processsing Lyrics for {partname}...")
     set_source_data()
 
-    global indexesVocalPhrasesOn_HARM2
-    global indexesVocalPhrasesOff_HARM2
-
-    indexesVocalPhrasesOn        = get_data_indexes("trackNotesOn", partname, 'phrase')
-    indexesVocalPhrasesOff       = get_data_indexes("trackNotesOff", partname, 'phrase')
-    indexesVocalsLyrics    = get_data_indexes("trackNotesLyrics", partname, 'lyrics')
-
-    # Store this for HARM3 use.
-    if partname == "HARM2":
-        indexesVocalPhrasesOn_HARM2 = indexesVocalPhrasesOn
-        indexesVocalPhrasesOff_HARM2 = indexesVocalPhrasesOff
+    # All harmonies must follow the Phrase Markers from HARM1.
+    if partname != "PART VOCALS":
+        _toFind = "HARM1"
+    else:
+        _toFind = partname
     pass
 
-    if partname == "HARM3":
-        if len(indexesVocalPhrasesOn_HARM2) > 0:
-            indexesVocalPhrasesOn = indexesVocalPhrasesOn_HARM2
-            indexesVocalPhrasesOff = indexesVocalPhrasesOff_HARM2
-        else:
-            output_add("issues_critical", "HARM2 Phrase Markers do not exist! HARM3 can not be processed!")
-            return
+    indexesVocalPhrasesOn  = get_data_indexes("trackNotesOn", _toFind, 'phrase')
+    indexesVocalPhrasesOff = get_data_indexes("trackNotesOff", _toFind, 'phrase')
+    indexesVocalsLyrics    = get_data_indexes("trackNotesLyrics", partname, 'lyrics')
+
+    if len(indexesVocalPhrasesOn) > 0:
         pass
+    else:
+        output_add("issues_critical", f"{_toFind} Phrase Markers do not exist! Lyrics for {partname} can not be processed.")
+        return
     pass
 
     lastTime               = 0
@@ -892,8 +886,6 @@ def rbn_keys_real_shifts(partname:str):
     set_source_data()
     print(f"Processsing ranges for {partname}...")
 
-    noteLength64    = joule_data.TicksPerBeat / 16
-    noteLength16    = noteLength64 * 4
     diff = partname[len(partname)-1].lower()
 
     # The amount of time that notes can be seen on screen in seconds.

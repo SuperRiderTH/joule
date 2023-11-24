@@ -188,7 +188,6 @@ def initialize_band():
             pass
 
             
-            lastSeenTime = 0
 
             # Process all MIDI messages.
             for msg in track:
@@ -208,12 +207,10 @@ def initialize_band():
                             if msg.type == 'note_on':
                                 output_add("issues_critical",f"{track.name} | Unknown MIDI Note '{str(msg.note)}' found!")
                                 unknownNotesSeen.append(msg.note)
-                                lastSeenTime = trackTime
                                 pass
                             elif msg.type == 'note_off':
                                 if msg.note in unknownNotesSeen:
                                     unknownNotesSeen.remove(msg.note)
-                                    print(f"Length: {trackTime - lastSeenTime}")
                                 else:
                                     output_add("issues_critical",f"{track.name} | Unknown MIDI Note Off '{str(msg.note)}' found!")
                                 pass

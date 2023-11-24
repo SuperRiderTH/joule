@@ -62,13 +62,13 @@ def validate_sustains(partname:str, isRealKeys=False):
 
     global notename_array
 
-    noteLength64    = joule_data.GameDataFile.ticks_per_beat / 16 #30, assuming 480.
+    noteLength64    = joule_data.TicksPerBeat / 16 #30, assuming 480.
 
-    noteLength32    = joule_data.GameDataFile.ticks_per_beat / 8  #60
-    noteLength32T   = joule_data.GameDataFile.ticks_per_beat / 12 #40
+    noteLength32    = joule_data.TicksPerBeat / 8  #60
+    noteLength32T   = joule_data.TicksPerBeat / 12 #40
 
-    noteLength16    = joule_data.GameDataFile.ticks_per_beat / 4  #120
-    noteLength16T   = joule_data.GameDataFile.ticks_per_beat / 6  #80
+    noteLength16    = joule_data.TicksPerBeat / 4  #120
+    noteLength16T   = joule_data.TicksPerBeat / 6  #80
 
     sustainLimit = get_meta('TicksSustainLimit')
     sustainMinimum = get_meta('SustainMinimum')
@@ -163,13 +163,13 @@ def validate_spacing_vocals(partname:str):
 
     global notename_array
 
-    noteLength64    = joule_data.GameDataFile.ticks_per_beat / 16 #30, assuming 480.
+    noteLength64    = joule_data.TicksPerBeat / 16 #30, assuming 480.
 
-    noteLength32    = joule_data.GameDataFile.ticks_per_beat / 8  #60
-    noteLength32T   = joule_data.GameDataFile.ticks_per_beat / 12 #40
+    noteLength32    = joule_data.TicksPerBeat / 8  #60
+    noteLength32T   = joule_data.TicksPerBeat / 12 #40
 
-    noteLength16    = joule_data.GameDataFile.ticks_per_beat / 4  #120
-    noteLength16T   = joule_data.GameDataFile.ticks_per_beat / 6  #80
+    noteLength16    = joule_data.TicksPerBeat / 4  #120
+    noteLength16T   = joule_data.TicksPerBeat / 6  #80
 
     print(f"Processsing vocal note spacing for {partname}...")
 

@@ -889,7 +889,10 @@ def rbn_keys_real_shifts(partname:str):
     diff = partname[len(partname)-1].lower()
 
     # The amount of time that notes can be seen on screen in seconds.
-    laneLength      = 1.5
+    trackLengthList  = [2.1166666667, 1.7666666667, 1.4333333333, 1.1]
+    trackLengthDiffs = ["e","m","h","x"]
+
+    trackLength      = trackLengthList[trackLengthDiffs.index(diff)]
 
     noteRangeIndex  = [57,55,53,52,50,48]
     noteRangeNames  = [
@@ -954,10 +957,10 @@ def rbn_keys_real_shifts(partname:str):
                 if get_note_on(partname,key,note):
                     notesHappening.append(key)
 
-                    if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + laneLength ):
+                    if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + trackLength ):
                         if key not in pastRange:
                             output_add("issues_major", f"{partname} | {format_location(note)} | Note appears off the Track on {diff_array[diff]}.")
-                            output_add("debug_3", f"{format_location(note)} | {joule_data.Seconds[note]} - {( joule_data.Seconds[currentRangeTime] + laneLength )} | {key}")
+                            output_add("debug_3", f"{format_location(note)} | {joule_data.Seconds[note]} - {( joule_data.Seconds[currentRangeTime] + trackLength )} | {key}")
                         pass
                     pass
 

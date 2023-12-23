@@ -889,10 +889,12 @@ def rbn_keys_real_shifts(partname:str):
     diff = partname[len(partname)-1].lower()
 
     # The amount of time that notes can be seen on screen in seconds.
-    trackLengthList  = [2.1166666667, 1.7666666667, 1.4333333333, 1.1]
-    trackLengthDiffs = ["e","m","h","x"]
+    trackLengthList     = [(138/60), (115/60), (93/60), (69/60)]
+    trackLengthListAIM  = [(93/60), (87/60), (81/60), (75/60)]
+    trackLengthDiffs    = ["e","m","h","x"]
 
     trackLength      = trackLengthList[trackLengthDiffs.index(diff)]
+    trackLengthAIM   = trackLengthListAIM[trackLengthDiffs.index(diff)]
 
     noteRangeIndex  = [57,55,53,52,50,48]
     noteRangeNames  = [
@@ -951,23 +953,7 @@ def rbn_keys_real_shifts(partname:str):
                 pass
             pass
         pass
-
-        if note in notesOn:
-            for key in noteKeys:
-                if get_note_on(partname,key,note):
-                    notesHappening.append(key)
-
-                    if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + trackLength ):
-                        if key not in pastRange:
-                            output_add("issues_major", f"{partname} | {format_location(note)} | Note appears off the Track on {diff_array[diff]}.")
-                            output_add("debug_3", f"{format_location(note)} | {joule_data.Seconds[note]} - {( joule_data.Seconds[currentRangeTime] + trackLength )} | {key}")
-                        pass
-                    pass
-
-                pass
-            pass
-        pass
-
+        
         if note in notesOnRanges:
             for nRange in noteRangeNames:
                 if get_note_on(partname,nRange,note):
@@ -986,10 +972,33 @@ def rbn_keys_real_shifts(partname:str):
             pass
         pass
 
+        if note in notesOn:
+            for key in noteKeys:
+                if get_note_on(partname,key,note):
+                    notesHappening.append(key)
+
+                    if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + trackLength )\
+                    or joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + trackLengthAIM ):
+                        if key not in pastRange:
+                            _outputString = f"Note appears off the Track on {diff_array[diff]}"
+
+                            if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + trackLengthAIM ):
+                                _outputString += " in All Instruments Mode"
+
+                            _outputString += "."
+
+                            output_add("issues_major", f"{partname} | {format_location(note)} | {_outputString}")
+                            output_add("debug_3", f"{format_location(note)} | {joule_data.Seconds[note]} - {( joule_data.Seconds[currentRangeTime] + trackLength )} | {key}")
+                        pass
+                    pass
+
+                pass
+            pass
+        pass
+
         #print(f"{format_location(note)} - {notesHappening}")
 
     pass
-
 
 pass
 

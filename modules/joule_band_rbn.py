@@ -979,7 +979,7 @@ def rbn_keys_real_shifts(partname:str):
                     if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + trackLength )\
                     or joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + trackLengthAIM ):
                         if key not in pastRange:
-                            _outputString = f"Note appears off the Track on {diff_array[diff]}"
+                            _outputString = f"Note '{key.replace('note_','').upper() }' appears off the Track on {diff_array[diff]}"
 
                             if joule_data.Seconds[note] < ( joule_data.Seconds[currentRangeTime] + trackLengthAIM ):
                                 _outputString += " in All Instruments Mode"

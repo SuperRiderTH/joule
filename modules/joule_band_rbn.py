@@ -96,7 +96,11 @@ def validate_sustains(partname:str, isRealKeys=False):
 
 
         if len(get_data_indexes("trackNotesOn", partname, toFind)) < 2:
-            output_add("debug_3", f"{partname} | validate_spacing_lane | No notes found on {diff_array[diff]}.")
+            output_add("debug_3", f"{partname} | validate_sustains | No notes found on {diff_array[diff]}.")
+
+            if joule_data.GameSource in joule_data.GameSourceRBLike and joule_data.GameSource != "yarg":
+                output_add("issues_critical", f"{partname} | No notes found on {diff_array[diff]}.")
+
             continue
 
 
@@ -480,7 +484,7 @@ def rbn_drums_limbs(partname:str):
 
     for diff in diff_array:
 
-        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) == 0:
+        if len(get_data_indexes("trackNotesOn",partname,f"{diff}")) < 2:
             output_add("debug_3", f"{partname} | rbn_drums_limbs | No notes found on {diff_array[diff]}.")
             continue
 
@@ -715,14 +719,6 @@ def validate_instrument_phrases():
                     _tempCheck = diff
                 pass
 
-                if len( get_data_indexes( "trackNotesOn", track, _tempCheck ) ) == 0:
-                    output_add("debug_3", f"{track} | validate_instrument_phrases | No notes found on {diff_array[diff]}.")
-
-                    if joule_data.GameSource in joule_data.GameSourceRBLike and joule_data.GameSource != "yarg":
-                        output_add("issues_critical", f"{track} | No notes found on {diff_array[diff]}.")
-
-                    continue
-
                 if notesname_instruments_array[track] == "PROKEYS":
 
                     if track != f"PART REAL_KEYS_{diff.capitalize()}":
@@ -741,7 +737,10 @@ def validate_instrument_phrases():
                     checkOff    = get_data_indexes("trackNotesOff",track,noteType.lower())
                 pass
 
+                if len( get_data_indexes( "trackNotesOn", track, _tempCheck ) ) < 2:
+                    output_add("debug_3", f"{track} | validate_instrument_phrases | No notes found on {diff_array[diff]}.")
 
+                    continue
 
                 notesAll = sorted(set(notesOn + notesOff + checkOn + checkOff))
 

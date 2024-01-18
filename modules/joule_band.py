@@ -247,18 +247,17 @@ def initialize_band():
                         else:
                             if msg.text.startswith("[") and msg.text.endswith("]") and track.name == "EVENTS":
                                 output_add("issues_critical", f"{track.name} | Event '{msg.text}' found as a Lyric in the EVENTS track.")
-
-                                # Add this to the text data for the EVENTS track, because this should be there.
-                                try:
-                                    len(trackNotesMeta[track.name, "text", trackTime])
-                                except:
-                                    trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
-                                else:
-                                    trackNotesMeta[track.name, "text", trackTime].append(msg.text)
-                                pass
-
                             else:
                                 output_add("issues_minor", f"{track.name} | Lyric '{msg.text}' found in a non-vocal track.")
+                            pass
+
+                            # Add this to the text data for the track, because this should be there instead of a lyric.
+                            try:
+                                len(trackNotesMeta[track.name, "text", trackTime])
+                            except:
+                                trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
+                            else:
+                                trackNotesMeta[track.name, "text", trackTime].append(msg.text)
                             pass
                         pass
                     else:

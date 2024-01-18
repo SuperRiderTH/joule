@@ -1,7 +1,7 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 1
-MinorVersion    = 12
+MinorVersion    = 13
 PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"

@@ -40,6 +40,7 @@ def process_time_signature( ticks:int, numerator:int, denominator:int ):
     global time_signature_last_measure
     global last_time_signature_num
     global last_time_signature_denom
+    global trackNotesMeta
 
     trackNotesMeta["meta","time_signature_num",ticks] = numerator
     trackNotesMeta["meta","time_signature_denom",ticks] = denominator
@@ -232,13 +233,24 @@ def initialize_band():
                 elif msg.type == 'note_off':
                     trackNotesOff[track.name, currentNoteName, trackTime] = True
 
-                elif msg.type == 'text':
-                    try:
-                        len( trackNotesMeta[track.name, "text", trackTime] )
-                    except:
-                        trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
-                    else:
-                        trackNotesMeta[track.name, "text", trackTime].append(msg.text)
+                elif msg.type == 'text' or msg.type == 'lyrics':
+
+                    if msg.type == 'lyrics':
+                        if track.name == "PART VOCALS" or track.name.startswith("HARM"):
+                            try:
+                                len( trackNotesLyrics[track.name, "lyrics", trackTime] )
+                            except:
+                                trackNotesLyrics[track.name, "lyrics", trackTime] = msg.text
+                            else:
+                                output_add("issues_critical", f"{track.name} | Multiple Lyrics found at the same position.")
+                            pass
+                        else:
+                            if msg.text.startswith("[") and msg.text.endswith("]") and track.name == "EVENTS":
+                                output_add("issues_critical", f"{track.name} | Event '{msg.text}' found as a Lyric in the EVENTS track.")
+                            else:
+                                output_add("issues_minor", f"{track.name} | Lyric '{msg.text}' found in a non-vocal track.")
+                            pass
+                        pass
                     pass
 
                     if track.name == "EVENTS":
@@ -251,14 +263,15 @@ def initialize_band():
                         pass
                     pass
 
-                elif msg.type == 'lyrics':
                     try:
-                        len( trackNotesLyrics[track.name, "lyrics", trackTime] )
+                        len( trackNotesMeta[track.name, "text", trackTime] )
                     except:
-                        trackNotesLyrics[track.name, "lyrics", trackTime] = msg.text
+                        trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
                     else:
-                        output_add("issues_critical", f"{track.name} | Multiple Lyrics found at the same position.")
+                        trackNotesMeta[track.name, "text", trackTime].append(msg.text)
                     pass
+
+                    
                     
                 elif msg.type == 'time_signature':
                     process_time_signature(trackTime, msg.numerator, msg.denominator)

@@ -177,6 +177,7 @@ def initialize_band():
             last_time_signature_denom      = 4
 
             #print("Found " + track.name + "...")
+            output_add("debug_3",f"Found {track.name}")
             joule_data.Tracks.append(track.name)
 
             if track.name in notesname_instruments_array:

@@ -57,30 +57,37 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # Set the file type that we are reading.
     # ========================================
     
-    if gameDataLocation.endswith(".mid") or gameDataLocation.endswith(".midi"):
+    _location = gameDataLocation.lower()
+    
+    if _location.endswith(".mid") or _location.endswith(".midi"):
         joule_data.GameDataFileType = "MIDI"
-    elif gameDataLocation.endswith(".chart"):
+    elif _location.endswith(".chart"):
         joule_data.GameDataFileType = "CHART"
     else:
         joule_data.GameDataFileType = "BINARY"
     pass
 
+    # Assume that the game is Rock Band 3 if none is provided.
+    # ========================================
+
     if gameSource == False:
         if joule_data.GameDataFileType == "MIDI":
             print("No Game Source provided, assuming Rock Band 3...")
-            joule_data.GameSource   = "rb3"
+            joule_data.GameSource = "rb3"
         else:
             print("No Game Source provided, Joule can not continue.")
             return False
         pass
     else:
-        joule_data.GameSource   = gameSource
+        joule_data.GameSource = gameSource
     pass
 
     
-
     if joule_data.GameSource in joule_data.GameSourceList:
         joule_data.GameSourceFull = joule_data.GameSourceList[joule_data.GameSource]
+    else:
+        print("Invalid Game Source provided, Joule can not continue.")
+        quit()
 
 
     fileType = joule_data.GameDataFileType
@@ -101,8 +108,6 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         return False
     pass
 
-    
-    joule_data.GameSourceFull = joule_data.GameSourceList[joule_data.GameSource]
 
     print(f"Game Source: {joule_data.GameSourceFull}")
     output_add("info",f"Joule Version: {joule_data.Version}")
@@ -213,6 +218,8 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                 "DoubleGuitar",
                 "DoubleBass",
                 "DoubleRhythm",
+                "LeadRival1",
+                "LeadRival2",
             ]
         
         initTest = initialize_band()
@@ -296,49 +303,18 @@ if __name__ == "__main__":
     # Argument checking.
     # ========================================
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
         print ("Invalid number of arguments!")
         quit()
     pass
 
     argLocation = sys.argv[1]
-  
-    # Set the file type that we are reading.
-    # ========================================
-
-    _location = argLocation.lower()
-    
-    if _location.endswith(".mid") or _location.endswith(".midi"):
-        joule_data.GameDataFileType = "MIDI"
-    elif _location.endswith(".chart"):
-        joule_data.GameDataFileType = "CHART"
-    else:
-        joule_data.GameDataFileType = "BINARY"
-    pass
-
-
-    # Assume that the game is Rock Band 3 if none is provided.
-    # ========================================
-    
     argSource = False
-    
-    if joule_data.GameDataFileType == "MIDI":
-        if len(sys.argv) == 2:
-            print("No Game Source provided, assuming Rock Band 3...")
-            argSource = "rb3"
-        else:
-            argSource = sys.argv[2]
-        pass
-    else:
-        if len(sys.argv) < 3:
-            print("No Game Source provided, Joule can not continue.")
-        else:
-            argSource = sys.argv[2]
-        pass
-    pass
-  
-    if argSource != False:
-        joule_run(argLocation, argSource)
+
+    if len(sys.argv) > 2:
+        argSource = sys.argv[2]
+
+    joule_run(argLocation, argSource)
 
     print ("========================================")
     print("Done.")

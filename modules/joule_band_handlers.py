@@ -87,6 +87,10 @@ def format_seconds( note_location:int ):
     # Return the ticks in a seconds based format,
     # similar to how REAPER displays the time.
 
+    if get_meta("TotalLength") == None:
+        print("format_seconds: File has not been initialized for seconds generation!")
+        return "SecondsError"
+
     raw_time = joule_data.Seconds[note_location]
 
     if raw_time == None:

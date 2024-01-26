@@ -28,6 +28,8 @@ notesname_instruments_array = {
     "DoubleBass": "5LANES",
     "DoubleRhythm": "5LANES",
     "Keyboard": "5LANES",
+    "LeadRival1": "5LANES",
+    "LeadRival2": "5LANES",
     
     "GHLGuitar": "6LANES",
     "GHLBass": "6LANES",

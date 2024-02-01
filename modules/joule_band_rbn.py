@@ -16,6 +16,7 @@ def set_source_data():
     global diff_array
     global diff_highest
     global chord_limit
+    global chord_limit_keys
     global chord_limit_keys_pro
     global note_overdrive
     global notesname_instruments_array
@@ -30,6 +31,7 @@ def set_source_data():
     diff_array = base.diff_array
     diff_highest = base.diff_highest
     chord_limit = base.chord_limit
+    chord_limit_keys = base.chord_limit_keys
     chord_limit_keys_pro = base.chord_limit_keys_pro
     note_overdrive = base.note_overdrive
     notesname_instruments_array = base.notesname_instruments_array
@@ -803,9 +805,17 @@ def rbn_broken_chords(partname:str, diff:str):
     chordHappening = False
     brokenChordsAllowed = False
 
+    chordLimit = False
+
     if joule_data.BrokenChordsAllowed\
     or partname in ("PART KEYS", "Keyboard"):
         brokenChordsAllowed = True
+    pass
+
+    if partname in ("PART KEYS", "Keyboard"):
+        chordLimit = chord_limit_keys
+    else:
+        chordLimit = chord_limit
     pass
 
     notesOn.update( { "lane":[] } )
@@ -867,8 +877,8 @@ def rbn_broken_chords(partname:str, diff:str):
             pass
 
             # Chord limit testing here, as we can use this for broken chords.
-            if lanesUsed > chord_limit[diff]:
-                if chord_limit[diff] == 1:
+            if lanesUsed > chordLimit[diff]:
+                if chordLimit[diff] == 1:
                     output_add("issues_major", f"{partname} | {format_location(noteStartTime)} | Chords are not allowed on {diff_array[diff]}.")
                 else:
                     output_add("issues_major", f"{partname} | {format_location(noteStartTime)} | Too many notes in chord on {diff_array[diff]}. Found {lanesUsed}, max is {chord_limit[diff]}.")

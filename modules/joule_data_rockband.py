@@ -59,6 +59,13 @@ chord_limit = {
     "e": 1,
     }
 
+chord_limit_keys = {
+    "x": 3,
+    "h": 3,
+    "m": 2,
+    "e": 1,
+    }
+
 chord_limit_keys_pro = {
     "x": 4,
     "h": 3,

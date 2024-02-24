@@ -7,14 +7,20 @@ import joule_data_rockband
 import joule_data_clonehero
 import joule_data_yarg
 
-def output_add( output_type:str, output:str ):
+def output_add( output_type:str, output:str, unique=False ):
 
     if output_type.startswith("debug"):
         if int(output_type.split('_')[1]) > joule_data.Debug:
             return
 
+    if unique:
+        for outputs in joule_data.GameDataOutput[output_type]:
+            if output == joule_data.GameDataOutput[output_type][outputs]:
+                return
+
     _index = len(joule_data.GameDataOutput[output_type])
     joule_data.GameDataOutput[output_type][_index] = output
+
 pass
 
 def get_source_data():

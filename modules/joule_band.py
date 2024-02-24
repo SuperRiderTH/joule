@@ -231,6 +231,21 @@ def initialize_band():
                     pass
                     output_add("debug_4",f"{track.name} | {currentNoteName} | {trackTime}")
 
+                    # Enhanced Open checking.
+                    if currentNoteName.endswith("_open")\
+                    and not currentNoteName.startswith("animation_"):
+                        try:
+                            _enhanced = False
+                            if "[ENHANCED_OPENS]" in trackNotesMeta[track.name, "text", 0]:
+                                _enhanced = True
+                        except:
+                            pass
+                        finally:
+                            if _enhanced == False:
+                                output_add("issues_critical", f"{track.name} | Open notes found without ENHANCED_OPENS on {diff_array[currentNoteName[0]]}.", True)
+                        pass
+                    pass
+
                 elif msg.type == 'note_off':
                     trackNotesOff[track.name, currentNoteName, trackTime] = True
 
@@ -683,11 +698,11 @@ def initialize_band():
                             if inOpen:
                                 if get_note_on( track, f"{diff}_{noteLane}", note):
                                     trackNotesOn[ track, f"{diff}_{noteLane}", note ] = False
-                                    trackNotesOn[ track, f"{diff}_{"open"}", note ] = True
+                                    trackNotesOn[ track, f"{diff}_{'open'}", note ] = True
                                 pass
                                 if get_note_off( track, f"{diff}_{noteLane}", note):
                                     trackNotesOff[ track, f"{diff}_{noteLane}", note ] = False
-                                    trackNotesOff[ track, f"{diff}_{"open"}", note ] = True
+                                    trackNotesOff[ track, f"{diff}_{'open'}", note ] = True
                                 pass
                             pass
                         pass
@@ -815,37 +830,4 @@ def process_events():
     joule_data.GameData["events"] = events
 
     return
-pass
-
-
-def validate_open_notes(partname:str):
-    base = get_source_data()
-    diff_array = base.diff_array
-
-    # If we are using MIDI as our base, we want to check to make sure
-    # we are using ENHANCED_OPENS.
-
-    if joule_data.GameDataFileType == "MIDI":
-        enhancedOpens = False
-
-        try:
-            len( trackNotesMeta[partname, "text", 0] )
-        except:
-            enhancedOpens = False
-        else:
-            if "[ENHANCED_OPENS]" in trackNotesMeta[partname, "text", 0]:
-                enhancedOpens = True
-                return
-            pass
-        pass
-
-        for diff in diff_array:
-            if len( get_data_indexes( "trackNotesOn", partname, f"{diff}_open" ) ) > 0:
-                if enhancedOpens == False:
-                    output_add("issues_critical", f"{partname} | Open notes found without ENHANCED_OPENS on {diff_array[diff]}.")
-                pass
-            pass
-        pass
-
-    pass
 pass

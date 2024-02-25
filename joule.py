@@ -46,6 +46,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     joule_data.GameDataOutput.update( { "info":{} } )
     joule_data.GameDataOutput.update( { "issues_critical":{}, "issues_major":{}, "issues_minor":{} } )
     joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )
+    joule_data.GameDataOutput.update( { "check_results":{} } )
 
     joule_data.GameDataLocation = gameDataLocation
 
@@ -163,18 +164,21 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                     if part in ( "PART DRUMS", "PART DRUMS_2X"):
                         rbn_drums_limbs(part)
                         rbn_drums_fills(part)
+                        tow_check(part)
                     pass
 
                     if part in ( "PART GUITAR", "PART BASS", "PART RHYTHM"):
                         rbn_guitar_chords(part)
+                        rbn_broken_chords(part)
                         rbn_hopos(part)
                         validate_sustains(part)
+                        tow_check(part)
                     pass
 
                     if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
                         
                         if part == "PART VOCALS":
-                            tow_check()
+                            tow_check(part)
                         pass
                     
                         rbn_vocals_lyrics(part)
@@ -185,11 +189,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                     if part == "PART KEYS":
                         
                         rbn_hopos(part)
-                        
-                        for diff in joule_data_rockband.diff_array:
-                            rbn_broken_chords(part,diff)
-                        pass
-
+                        rbn_broken_chords(part)
                         validate_sustains(part)
 
                     pass

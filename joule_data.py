@@ -1,10 +1,13 @@
 # This file is for storing variables that will be used everywhere.
 
-MajorVersion    = 1
-MinorVersion    = 17
-PatchVersion    = 1
+MajorVersion    = 2
+MinorVersion    = 0
+PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
+
+IncludeMIDI     = False
+IncludeREAPER   = False
 
 AllowMuse       = False
 
@@ -14,10 +17,11 @@ Debug           = 2
 GameDataFile        = None
 GameDataFileType    = "NONE"
 
-GameData        = {}
-GameDataOutput  = {}
-GameSource      = ""
-GameSourceFull  = ""
+GameData            = {}
+GameDataOutput      = {}
+GameSource          = ""
+GameSourceFull      = ""
+GameSourceDefault   = "rb3"
 
 GameDataLocation = ""
 

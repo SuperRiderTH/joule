@@ -4,7 +4,9 @@
 import joule_data
 import math
 import re
-import mido
+
+if joule_data.IncludeMIDI:
+    import mido
 
 from joule_system import *
 from joule_band_handlers import *

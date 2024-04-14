@@ -5,12 +5,6 @@ import sys
 import json
 import os
 
-from mido import MidiFile
-
-# Module loading.
-tempDirectory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "modules")
-sys.path.insert(1,tempDirectory)
-
 import joule_data
 
 # For simplicity, game specific functions are moved into their own files.
@@ -23,6 +17,22 @@ __version__ = joule_data.Version
 
 gameDataLocation    = ""
 ignoreChecks        = False
+
+try:
+    from mido import MidiFile
+except ImportError:
+    pass
+else:
+    joule_data.IncludeMIDI = True
+pass
+
+try:
+    import reaper_python
+except ImportError:
+    pass
+else:
+    joule_data.IncludeREAPER = True
+pass
 
 
 # Functions
@@ -64,6 +74,8 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         joule_data.GameDataFileType = "MIDI"
     elif _location.endswith(".chart"):
         joule_data.GameDataFileType = "CHART"
+    elif joule_data.IncludeREAPER:
+        joule_data.GameDataFileType = "REAPER"
     else:
         joule_data.GameDataFileType = "BINARY"
     pass
@@ -72,13 +84,8 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # ========================================
 
     if gameSource == False:
-        if joule_data.GameDataFileType == "MIDI":
-            print("No Game Source provided, assuming Rock Band 3...")
-            joule_data.GameSource = "rb3"
-        else:
-            print("No Game Source provided, Joule can not continue.")
-            return False
-        pass
+        joule_data.GameSource = joule_data.GameSourceDefault
+        joule_print(f"No Game Source provided, assuming {joule_data.GameSourceList[joule_data.GameSourceDefault]}...")
     else:
         joule_data.GameSource = gameSource
     pass
@@ -87,8 +94,14 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     if joule_data.GameSource in joule_data.GameSourceList:
         joule_data.GameSourceFull = joule_data.GameSourceList[joule_data.GameSource]
     else:
-        print("Invalid Game Source provided, Joule can not continue.")
+        joule_print("Invalid Game Source provided, Joule can not continue.")
         quit()
+
+
+    joule_print(f"Game Source: {joule_data.GameSourceFull}")
+    output_add("info",f"Joule Version: {joule_data.Version}")
+    output_add("info",f"Source: {joule_data.GameSourceFull}")
+    output_add("debug_1",f"GameSource: {joule_data.GameSource}")
 
 
     fileType = joule_data.GameDataFileType
@@ -96,24 +109,31 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # Open the file for reading.
     # ========================================
     try:
-        if fileType == "MIDI":
-            joule_data.GameDataFile = MidiFile(gameDataLocation, clip=True)
-        elif fileType == "CHART":
-            _temp = open(gameDataLocation, mode="r")
-            joule_data.GameDataFile = _temp.readlines()
+        if fileType == "MIDI" or fileType == "CHART":
+
+            # Chart reading in theory can work without MIDI,
+            # but the bpm2tempo function needs to be recreated.
+            if not joule_data.IncludeMIDI:
+                joule_print("Mido is not loaded, unable to proceed.")
+                return
+
+            if fileType == "MIDI":
+                joule_data.GameDataFile = MidiFile(gameDataLocation, clip=True)
+            elif fileType == "CHART":
+                _temp = open(gameDataLocation, mode="r")
+                joule_data.GameDataFile = _temp.readlines()
+            pass
+
         elif fileType == "BINARY":
             joule_data.GameDataFile = open(gameDataLocation, mode="rb")
+        elif fileType == "REAPER":
+            joule_print("Running inside of REAPER, reading project...")
         pass
     except OSError:
-        print("Unable to read", gameDataLocation)
+        joule_print(f"Unable to read: {gameDataLocation}")
         return False
     pass
 
-
-    print(f"Game Source: {joule_data.GameSourceFull}")
-    output_add("info",f"Joule Version: {joule_data.Version}")
-    output_add("info",f"Source: {joule_data.GameSourceFull}")
-    output_add("debug_1",f"GameSource: {joule_data.GameSource}")
 
     # Game specific checks
     # ========================================
@@ -121,13 +141,13 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # Check for a song.ini, use their information if it exists.
     if joule_data.GameSource in joule_data.GameSourceHasSongINI:
         gameDataDirectory = os.path.dirname(gameDataLocation)
-        #print(gameDataDirectory)
+        #joule_print(gameDataDirectory)
 
         try:
             _temp = open(gameDataDirectory + "/song.ini", mode="r")
             _tempLines = _temp.readlines()
 
-            print("Found song.ini, parsing information...")
+            joule_print("Found song.ini, parsing information...")
 
             for line in _tempLines:
                 lineGroups = line_groups(line)
@@ -138,14 +158,14 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
                     if "multiplier" in keyCheck and "note" in keyCheck:
                         write_meta("NoteOverdrive", int(lineGroups[1].strip()))
-                        print("Found Multiplier Note.")
+                        joule_print("Found Multiplier Note.")
 
                     if "whammy" in keyCheck and "cutoff" in keyCheck:
                         write_meta("WhammyCutoff", float(lineGroups[1].strip()))
-                        print("Found Whammy Cutoff.")
+                        joule_print("Found Whammy Cutoff.")
 
         except OSError:
-            print("No song.ini found.")
+            joule_print("No song.ini found.")
         pass
     pass
     
@@ -275,7 +295,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
             pass
         pass
     else:
-        print ("Invalid game specified!")
+        joule_print ("Invalid game specified!")
         return False
     pass
 
@@ -293,27 +313,33 @@ pass
 
 
 if __name__ == "__main__":
-    print ("")
-    print ("Version: " + joule_data.Version)
-    print ("========================================")
+    joule_print ("")
+    joule_print ("Joule Version: " + joule_data.Version)
+    joule_print ("========================================")
     
     
     # Argument checking.
     # ========================================
 
-    if len(sys.argv) < 2 or len(sys.argv) > 3:
-        print ("Invalid number of arguments!")
-        quit()
-    pass
-
-    argLocation = sys.argv[1]
     argSource = False
 
-    if len(sys.argv) > 2:
-        argSource = sys.argv[2]
+    if joule_data.IncludeREAPER:
+        argLocation = "REAPER"
+    else:
+        if len(sys.argv) < 2 or len(sys.argv) > 3:
+            joule_print ("Invalid number of arguments!")
+            quit()
+        pass
+
+        argLocation = sys.argv[1]
+
+        if len(sys.argv) > 2:
+            argSource = sys.argv[2]
+        pass
+    pass
 
     joule_run(argLocation, argSource)
 
-    print ("========================================")
-    print("Done.")
+    joule_print ("========================================")
+    joule_print("Done.")
 

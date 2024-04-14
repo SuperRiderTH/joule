@@ -23,6 +23,19 @@ def output_add( output_type:str, output:str, unique=False ):
 
 pass
 
+# We have a custom print function, because we need to change where we are outputting to.
+try:
+    from reaper_python import RPR_ShowConsoleMsg
+except ImportError:
+    def joule_print(string:str):
+        print(string)
+    pass
+else:
+    def joule_print(string:str):
+        RPR_ShowConsoleMsg(string + "\n")
+    pass
+pass
+
 def get_source_data():
     
     if joule_data.GameSource in joule_data.GameSourceRBLike:

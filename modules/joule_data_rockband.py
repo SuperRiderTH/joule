@@ -59,6 +59,13 @@ chord_limit = {
     "e": 1,
     }
 
+chord_limit_keys = {
+    "x": 3,
+    "h": 3,
+    "m": 2,
+    "e": 1,
+    }
+
 chord_limit_keys_pro = {
     "x": 4,
     "h": 3,
@@ -301,7 +308,7 @@ notename_array = {
         5:	"range_f2_a3",
         4:	"range_e2_g3",
         2:	"range_d2_f3",
-        0:	"range_c2_c3"
+        0:	"range_c2_e3"
     },
 }
 

@@ -40,6 +40,7 @@ def process_time_signature( ticks:int, numerator:int, denominator:int ):
     global time_signature_last_measure
     global last_time_signature_num
     global last_time_signature_denom
+    global trackNotesMeta
 
     trackNotesMeta["meta","time_signature_num",ticks] = numerator
     trackNotesMeta["meta","time_signature_denom",ticks] = denominator
@@ -124,6 +125,7 @@ def initialize_band():
     notesname_instruments_array = base.notesname_instruments_array
     notename_array = base.notename_array
     diff_array = base.diff_array
+    notes_lane = base.notes_lane
 
     # MIDI Processing
     # ========================================
@@ -175,6 +177,7 @@ def initialize_band():
             last_time_signature_denom      = 4
 
             #print("Found " + track.name + "...")
+            output_add("debug_3",f"Found {track.name}")
             joule_data.Tracks.append(track.name)
 
             if track.name in notesname_instruments_array:
@@ -228,16 +231,59 @@ def initialize_band():
                     pass
                     output_add("debug_4",f"{track.name} | {currentNoteName} | {trackTime}")
 
+                    # Enhanced Open checking.
+                    if currentNoteName.endswith("_open")\
+                    and not currentNoteName.startswith("animation_"):
+                        try:
+                            _enhanced = False
+                            if "[ENHANCED_OPENS]" in trackNotesMeta[track.name, "text", 0]:
+                                _enhanced = True
+                        except:
+                            pass
+                        finally:
+                            if _enhanced == False:
+                                output_add("issues_critical", f"{track.name} | Open notes found without ENHANCED_OPENS on {diff_array[currentNoteName[0]]}.", True)
+                        pass
+                    pass
+
                 elif msg.type == 'note_off':
                     trackNotesOff[track.name, currentNoteName, trackTime] = True
 
-                elif msg.type == 'text':
-                    try:
-                        len( trackNotesMeta[track.name, "text", trackTime] )
-                    except:
-                        trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
+                elif msg.type == 'text' or msg.type == 'lyrics':
+
+                    if msg.type == 'lyrics':
+                        if track.name == "PART VOCALS" or track.name.startswith("HARM"):
+                            try:
+                                len( trackNotesLyrics[track.name, "lyrics", trackTime] )
+                            except:
+                                trackNotesLyrics[track.name, "lyrics", trackTime] = msg.text
+                            else:
+                                output_add("issues_critical", f"{track.name} | Multiple Lyrics found at the same position.")
+                            pass
+                        else:
+                            if msg.text.startswith("[") and msg.text.endswith("]") and track.name == "EVENTS":
+                                output_add("issues_critical", f"{track.name} | Event '{msg.text}' found as a Lyric in the EVENTS track.")
+                            else:
+                                output_add("issues_minor", f"{track.name} | Lyric '{msg.text}' found in a non-vocal track.")
+                            pass
+
+                            # Add this to the text data for the track, because this should be there instead of a lyric.
+                            try:
+                                len(trackNotesMeta[track.name, "text", trackTime])
+                            except:
+                                trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
+                            else:
+                                trackNotesMeta[track.name, "text", trackTime].append(msg.text)
+                            pass
+                        pass
                     else:
-                        trackNotesMeta[track.name, "text", trackTime].append(msg.text)
+                        try:
+                            len(trackNotesMeta[track.name, "text", trackTime])
+                        except:
+                            trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
+                        else:
+                            trackNotesMeta[track.name, "text", trackTime].append(msg.text)
+                        pass
                     pass
 
                     if track.name == "EVENTS":
@@ -250,14 +296,9 @@ def initialize_band():
                         pass
                     pass
 
-                elif msg.type == 'lyrics':
-                    try:
-                        len( trackNotesLyrics[track.name, "lyrics", trackTime] )
-                    except:
-                        trackNotesLyrics[track.name, "lyrics", trackTime] = msg.text
-                    else:
-                        output_add("issues_critical", f"{track.name} | Multiple Lyrics found at the same position.")
-                    pass
+                    
+
+                    
                     
                 elif msg.type == 'time_signature':
                     process_time_signature(trackTime, msg.numerator, msg.denominator)
@@ -273,7 +314,18 @@ def initialize_band():
                     else:
                         trackNotesMeta[track.name,"sysex",trackTime].append(msg.data)
                     pass
-                    #print(f"{msg.data}")
+
+                    # If we find tap note modifiers, we want to translate that.
+                    if msg.data[5] == 4:
+                        if msg.data[6] == 1:
+                            trackNotesOn[ track.name, "tap", trackTime ] = True
+                            #print("Tap On")
+                        if msg.data[6] == 0:
+                            trackNotesOff[ track.name, "tap", trackTime ] = True
+                            #print("Tap Off")
+                    else:
+                        pass
+                        #print(f"{msg.data}")
 
                 elif msg.type == 'end_of_track':
                     trackNotesMeta[track.name,"length",0] = trackTime
@@ -601,6 +653,70 @@ def initialize_band():
     joule_data.GameData["tracks"] = joule_data.Tracks
     joule_data.GameData["tracksFound"] = joule_data.TracksFound
 
+
+    # SysEx Event handling.
+    if joule_data.GameDataFileType == "MIDI":
+
+        for track in joule_data.TracksFound:
+            try:
+                len(get_data_indexes("trackNotesMeta", track, "sysex"))
+            except:
+                pass
+            else:
+
+                notesSysEx = get_data_indexes("trackNotesMeta", track, "sysex")
+
+                if len(notesSysEx) > 0:
+                    print(f"SysEx Messages detected in {track}, modifying notes...")
+
+                    inOpen = False
+
+                    for diff in diff_array:
+                        notesOn     = get_data_indexes("trackNotesOn", track, diff)
+                        notesOff    = get_data_indexes("trackNotesOff", track, diff)
+                        notesAll    = sorted( set( notesOn + notesOff + notesSysEx ) )
+                    
+                    for note in notesAll:
+
+                        if note in notesSysEx:
+                            data = trackNotesMeta[track,"sysex",note]
+
+                            for entry in data:
+                                # Open Notes are 1, Starts with 1, Ends with 0.
+                                if entry[5] == 1:
+                                    if entry[6] == 1:
+                                        inOpen = True
+                                    if entry[6] == 0:
+                                        inOpen = False
+                                    pass
+                                pass
+                            pass
+                        pass
+
+                        # Modify any notes that are in-between Open markers to be Open notes.
+                        for noteLane in notes_lane:
+                            if inOpen:
+                                if get_note_on( track, f"{diff}_{noteLane}", note):
+                                    trackNotesOn[ track, f"{diff}_{noteLane}", note ] = False
+                                    trackNotesOn[ track, f"{diff}_{'open'}", note ] = True
+                                pass
+                                if get_note_off( track, f"{diff}_{noteLane}", note):
+                                    trackNotesOff[ track, f"{diff}_{noteLane}", note ] = False
+                                    trackNotesOff[ track, f"{diff}_{'open'}", note ] = True
+                                pass
+                            pass
+                        pass
+
+                    pass
+
+                    # Since we are making changes, make sure to re-write this.
+                    joule_data.GameData["trackNotesOn"] = trackNotesOn
+                    joule_data.GameData["trackNotesOff"] = trackNotesOff
+                pass
+            pass
+        pass
+    pass
+
     generate_seconds()
 
     output_add("info",f"Length: {format_seconds(get_meta('TotalLength'))}")
@@ -714,37 +830,4 @@ def process_events():
     joule_data.GameData["events"] = events
 
     return
-pass
-
-
-def validate_open_notes(partname:str):
-    base = get_source_data()
-    diff_array = base.diff_array
-
-    # If we are using MIDI as our base, we want to check to make sure
-    # we are using ENHANCED_OPENS.
-
-    if joule_data.GameDataFileType == "MIDI":
-        enhancedOpens = False
-
-        try:
-            len( trackNotesMeta[partname, "text", 0] )
-        except:
-            enhancedOpens = False
-        else:
-            if "[ENHANCED_OPENS]" in trackNotesMeta[partname, "text", 0]:
-                enhancedOpens = True
-                return
-            pass
-        pass
-
-        for diff in diff_array:
-            if len( get_data_indexes( "trackNotesOn", partname, f"{diff}_open" ) ) > 0:
-                if enhancedOpens == False:
-                    output_add("issues_critical", f"{partname} | Open notes found without ENHANCED_OPENS on {diff_array[diff]}.")
-                pass
-            pass
-        pass
-
-    pass
 pass

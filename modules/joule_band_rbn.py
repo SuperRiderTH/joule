@@ -428,7 +428,7 @@ def rbn_vocals_lyrics(partname:str):
                 else:
                     if syllable not in reservedSyllables:
                         if syllable[0].isupper():
-                            output_add("issues_minor",f"{partname} | {format_location(note)} | '{syllableRaw}' should not be uppercase.")
+                            output_add("issues_minor",f"{partname} | {format_location(note)} | Unexpected uppercase syllable '{syllableRaw}'.")
                             result = False
                         pass
                     pass

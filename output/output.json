@@ -1,0 +1,18 @@
+{
+    "info": {
+        "0": "Joule Version: 2.0.0",
+        "1": "Source: Rock Band 3",
+        "2": "Length: SecondsError"
+    },
+    "issues_critical": {},
+    "issues_major": {},
+    "issues_minor": {},
+    "events": {},
+    "lyrics": {},
+    "check_results": {},
+    "debug_1": {
+        "0": "GameSource: rb3",
+        "1": "TotalLength: None"
+    },
+    "debug_2": {}
+}

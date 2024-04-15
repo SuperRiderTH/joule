@@ -32,7 +32,7 @@ except ImportError:
     pass
 else:
     def joule_print(string:str):
-        RPR_ShowConsoleMsg(string + "\n")
+        RPR_ShowConsoleMsg(str(string) + "\n")
     pass
 pass
 

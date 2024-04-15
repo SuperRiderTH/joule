@@ -4,6 +4,7 @@ from enum import Enum
 import sys
 import json
 import os
+import shutil
 
 # Module loading.
 tempDirectory = os.path.join(sys.path[0], "modules")
@@ -22,6 +23,10 @@ __version__ = joule_data.Version
 gameDataLocation    = ""
 ignoreChecks        = False
 
+
+# Imports
+# ========================================
+
 try:
     from mido import MidiFile
 except ImportError:
@@ -31,7 +36,7 @@ else:
 pass
 
 try:
-    import reaper_python
+    from reaper_python import *
 except ImportError:
     pass
 else:
@@ -131,7 +136,21 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         elif fileType == "BINARY":
             joule_data.GameDataFile = open(gameDataLocation, mode="rb")
         elif fileType == "REAPER":
-            joule_print("Running inside of REAPER, reading project...")
+
+            # Get REAPER metadata.
+            rpr_enum = RPR_EnumProjects(-1, "", 512)
+
+            # Rewrite the location to where the project file is.
+            gameDataLocation = rpr_enum[2]
+            joule_data.GameDataLocation = gameDataLocation
+
+            # Grab the name for the output.
+            file_name_split = gameDataLocation.split('\\')
+            file_name = file_name_split[len(file_name_split) - 1]
+            file_name = file_name.split(".")[0]
+
+            joule_print(f"Running inside of REAPER, reading {file_name}...")
+
         pass
     except OSError:
         joule_print(f"Unable to read: {gameDataLocation}")
@@ -308,9 +327,17 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
     # Output to json since we are done.
     # ========================================
-    
-    with open(gameDataLocation+".json", "w") as write:
+
+    with open(gameDataLocation + ".json", "w") as write:
         json.dump(joule_data.GameDataOutput, write, indent=4)
+
+    if joule_data.GameDataFileType == "REAPER":
+        _tempOutputLocation = os.path.join(sys.path[0], "output")
+
+        if not os.path.exists(_tempOutputLocation):
+            os.makedirs(_tempOutputLocation)
+
+        shutil.copyfile(gameDataLocation + ".json", os.path.join(_tempOutputLocation, "output.json"))
 
     return initTest
 pass

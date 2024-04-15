@@ -5,6 +5,10 @@ import sys
 import json
 import os
 
+# Module loading.
+tempDirectory = os.path.join(sys.path[0], "modules")
+sys.path.insert(1,tempDirectory)
+
 import joule_data
 
 # For simplicity, game specific functions are moved into their own files.

@@ -95,7 +95,8 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
     if gameSource == False:
         joule_data.GameSource = joule_data.GameSourceDefault
-        joule_print(f"No Game Source provided, assuming {joule_data.GameSourceList[joule_data.GameSourceDefault]}...")
+        if joule_data.GameDataFileType != "REAPER":
+            joule_print(f"No Game Source provided, assuming {joule_data.GameSourceList[joule_data.GameSourceDefault]}...")
     else:
         joule_data.GameSource = gameSource
     pass

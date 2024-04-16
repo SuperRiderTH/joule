@@ -152,23 +152,25 @@ def cleaner_decimal(input):
     
 pass
 
-def decode_base64_to_str(input):
+def decode_reaper_text(input):
 
     output = input
 
     try:
         output = base64.b64decode(output)
-        output = output[2:]
-        #joule_print(f"b64 decode: {output}\n")
+        textType = int(output[1])
+        textString = output[2:]
     except:
 
         try:
             str.encode(output)
-            output = str.encode(output)
+            textType = 1
+            textString = str.encode(output)
         except:
-            joule_print(f"failed b64 decode: {output}\n")
+            joule_print(f"failed b64 decode: {output}")
+            pass
 
-    output = codecs.decode(output, 'utf-8')
-    output = str(output)
+    textString = codecs.decode(textString, 'utf-8')
+    textString = str(textString)
 
-    return output
+    return [textType, textString]

@@ -638,35 +638,167 @@ def initialize_band():
     # ========================================
     if joule_data.GameDataFileType == "REAPER":
 
+        trackTime           = 0
+        unknownNotesSeen    = []
+
+        last_time_signature_num        = 4
+        last_time_signature_denom      = 4
+
+        project_dump = []
+        project_data = []
+        project_data_track = []
+        project_known_tracks = []
+
         # We have this variable just to make some functions
         # look nicer instead of using 0 everywhere.
         current_project = 0
 
+        # Get the amount of items from REAPER.
+        num_media_items = RPR_CountMediaItems(current_project)
+
+        # Get the information from REAPER.
+        for media_item in range(0, num_media_items):
+
+            item = RPR_GetMediaItem(current_project, media_item)
+            results = RPR_GetSetItemState(item, "", 1048576)
+
+            track = RPR_GetMediaItem_Track(item)
+            trackMuted = RPR_GetMediaTrackInfo_Value(track, "B_MUTE")
+
+            if trackMuted == True:
+                continue
+
+            project_data.append(results[2])
+            project_data_track.append(track)
+
+            # Get the content of the track.
+            project_dump.append("~START")
+
+            project_dump.append(f"~TRACK: { RPR_GetMediaItem_Track(item)}")
+
+            for line in results[2].splitlines():
+                project_dump.append(line)
+
+            project_dump.append("~END")
+
+        pass
+
+        # Dump REAPER info to a file for reading.
         with open(joule_data.GameDataLocation + ".reaper-info.txt", "w", encoding="utf-8") as _file:
 
-            # Get the amount of items from REAPER.
-            num_media_items = RPR_CountMediaItems(current_project)
-
-            for media_item in range(0, num_media_items):
-
+            for line in project_dump:
+                _file.write(line)
                 _file.write("\n")
 
-                item = RPR_GetMediaItem(current_project, media_item)
-                results = RPR_GetSetItemState(item, "", 1048576)
-
-                # Get the content of the track.
-                track_content = results[2].splitlines()
-
-                for line in track_content:
-                    _file.write("\n\n")
-                    _file.write(line)
-
-                _file.write("\n========================================")
+                if line == "~END":
+                    _file.write("\n")
 
             _file.close()
 
+        pass
+
+
+        # Grab the Ticks Per Beat from the REAPER project.
+        TicksPerBeat = -1
+
+        # We are just going to go through all the items until we find one.
+        for item in project_data:
+
+            if TicksPerBeat != -1:
+                break
+
+            if "HASDATA 1" in item:
+                for line in item.splitlines():
+                    if "HASDATA 1" in line and "QN" in line:
+                        TicksPerBeat = int(line.split()[2])
+                        joule_data.TicksPerBeat = TicksPerBeat
+                        break
+                    pass
+                pass
+            pass
 
         pass
+
+        output_add("debug_1",f"ticksPerBeat: {joule_data.TicksPerBeat}")
+
+        # Rock Band expects 480 ticks per QN.
+        if joule_data.GameSource == "rb3" or joule_data.GameSource == "rb2":
+            if joule_data.TicksPerBeat != 480:
+                output_add("issues_critical", "Ticks per Quarter Note is not 480.")
+            pass
+        pass
+
+
+        # Sustain Limit calculation.
+        WhammyCutoff = get_meta("WhammyCutoff")
+
+        if WhammyCutoff != None:
+            write_meta("TicksSustainLimit", joule_data.TicksPerBeat * WhammyCutoff)
+        else:
+            if joule_data.GameSource in joule_data.GameSourceRBLike:
+                write_meta("TicksSustainLimit", joule_data.TicksPerBeat / 4)
+            else:
+                if joule_data.GameSource == "ch":
+                    factor = 0.45
+                elif joule_data.GameSource == "ghwtde":
+                    factor = 0.5
+                pass
+
+                write_meta("TicksSustainLimit", joule_data.TicksPerBeat * factor)
+            pass
+        pass
+
+        output_add("debug_1",f"TicksSustainLimit: {get_meta('TicksSustainLimit')}")
+
+
+        # Get the information from all the media items.
+        for data_index, item in enumerate(project_data):
+
+            current_part = None
+
+            data_lines = item.splitlines()
+
+            for index, line in enumerate(data_lines):
+
+                if current_part == "SKIP_PART":
+                    continue
+
+                # Text Events
+                if line.lower().startswith("<x"):
+                    textData = decode_reaper_text( data_lines[index+1] )
+                    #joule_print( textData )
+
+                    # Track Detection
+                    if textData[0] == 3:
+                        output_add("debug_3",f"Found {textData[1]}")
+                        joule_data.Tracks.append(textData[1])
+
+                        current_track = project_data_track[data_index]
+
+                        # Because multiple Media items can be on the same track,
+                        # we need to see if we are working with the same one.
+                        if textData[1] in notesname_instruments_array:
+                            if textData[1] in joule_data.TracksFound:
+                                for track in project_known_tracks:
+                                    if track[0] == textData[1] and track[1] != current_track:
+                                        output_add("issues_critical",f"Duplicate track '{textData[1]}' found! This duplicate track will not be processed.")
+                                        current_part = "SKIP_PART"
+                                    pass
+                                pass
+                            else:
+                                project_known_tracks.append( [textData[1], current_track] )
+                                joule_data.TracksFound.append(textData[1])
+                                current_part = textData[1]
+                            pass
+                        pass
+                    pass
+
+
+                pass
+            pass
+
+        pass
+
 
     pass
 
@@ -701,7 +833,7 @@ def initialize_band():
 
 
     # SysEx Event handling.
-    if joule_data.GameDataFileType == "MIDI":
+    if joule_data.GameDataFileType == "MIDI" or joule_data.GameDataFileType == "REAPER":
 
         for track in joule_data.TracksFound:
             try:

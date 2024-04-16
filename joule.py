@@ -114,6 +114,13 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     output_add("info",f"Source: {joule_data.GameSourceFull}")
     output_add("debug_1",f"GameSource: {joule_data.GameSource}")
 
+    if joule_data.IncludeREAPER:
+        _client = "REAPER"
+    else:
+        _client = "CLI"
+
+    output_add("info",f"Client: {_client}")
+
 
     fileType = joule_data.GameDataFileType
 

@@ -638,9 +638,6 @@ def initialize_band():
     # ========================================
     if joule_data.GameDataFileType == "REAPER":
 
-        trackTime           = 0
-        unknownNotesSeen    = []
-
         last_time_signature_num        = 4
         last_time_signature_denom      = 4
 
@@ -754,6 +751,9 @@ def initialize_band():
         # Get the information from all the media items.
         for data_index, item in enumerate(project_data):
 
+            trackTime           = 0
+            unknownNotesSeen    = []
+
             current_part = None
 
             data_lines = item.splitlines()
@@ -763,13 +763,24 @@ def initialize_band():
                 if current_part == "SKIP_PART":
                     continue
 
+                messageType = None
+                noteText = None
+                noteNumber = None
+
                 # Text Events
                 if line.lower().startswith("<x"):
+                    note_parts = line.split()
+
+                    trackTime += int(note_parts[1])
+
                     textData = decode_reaper_text( data_lines[index+1] )
+                    noteText = textData[1]
+                    messageType = "text"
                     #joule_print( textData )
 
                     # Track Detection
                     if textData[0] == 3:
+                        messageType = "name"
                         output_add("debug_3",f"Found {textData[1]}")
                         joule_data.Tracks.append(textData[1])
 
@@ -790,11 +801,147 @@ def initialize_band():
                                 joule_data.TracksFound.append(textData[1])
                                 current_part = textData[1]
                             pass
+                        else:
+                            current_part = textData[1]
                         pass
                     pass
 
+                    if textData[0] == 5:
+                        messageType = "lyrics"
+                    pass
 
                 pass
+
+                # Notes
+                if line.lower().startswith("e"):
+                    note_parts = line.split()
+
+                    trackTime += int( note_parts[1] )
+                    noteNumber = int( note_parts[3], 16 )
+                    noteVelocity = int( note_parts[4], 16 )
+
+                    if note_parts[2].startswith("9"):
+                        messageType = 'note_on'
+                    if note_parts[2].startswith("8"):
+                        messageType = 'note_off'
+
+                    if messageType == 'note_on' and noteVelocity == 0:
+                        messageType = 'note_off'
+
+
+                    # Set the note name.
+                    if messageType == 'note_on' or messageType == 'note_off':
+                        currentNoteName = str( noteNumber )
+
+                        if current_part in notesname_instruments_array:
+                            _tempName = notesname_instruments_array[current_part]
+
+                            # Translate the name of the note, if we have it.
+                            if noteNumber in notename_array[_tempName]:
+                                currentNoteName = notename_array[_tempName][noteNumber]
+                            else:
+                                if messageType == 'note_on':
+                                    output_add("issues_critical",f"{current_part} | Unknown MIDI Note '{str(noteNumber)}' found!")
+                                    unknownNotesSeen.append(noteNumber)
+                                    pass
+                                elif messageType == 'note_off':
+                                    if noteNumber in unknownNotesSeen:
+                                        unknownNotesSeen.remove(noteNumber)
+                                    else:
+                                        output_add("issues_critical",f"{current_part} | Unknown MIDI Note Off '{str(noteNumber)}' found!")
+                                    pass
+                                pass
+                            pass
+                        pass
+                    pass
+                pass
+
+
+                if messageType != None:
+                    if messageType == 'note_on':
+                        trackNotesOn[ current_part, currentNoteName, trackTime ] = True
+
+                        # Enhanced Open checking.
+                        if currentNoteName.endswith("_open")\
+                        and not currentNoteName.startswith("animation_"):
+                            try:
+                                _enhanced = False
+                                if "[ENHANCED_OPENS]" in trackNotesMeta[current_part, "text", 0]:
+                                    _enhanced = True
+                            except:
+                                pass
+                            finally:
+                                if _enhanced == False:
+                                    output_add("issues_critical", f"{current_part} | Open notes found without ENHANCED_OPENS on {diff_array[currentNoteName[0]]}.", True)
+                            pass
+                        pass
+                    elif messageType == 'note_off':
+                        trackNotesOff[current_part, currentNoteName, trackTime] = True
+                    elif messageType == 'text' or messageType == 'lyrics':
+
+                        if messageType == 'lyrics':
+                            if current_part == "PART VOCALS" or current_part.startswith("HARM"):
+                                try:
+                                    len( trackNotesLyrics[current_part, "lyrics", trackTime] )
+                                except:
+                                    trackNotesLyrics[current_part, "lyrics", trackTime] = noteText
+                                else:
+                                    output_add("issues_critical", f"{current_part} | Multiple Lyrics found at the same position.")
+                                pass
+                            else:
+                                if noteText.startswith("[") and noteText.endswith("]") and current_part == "EVENTS":
+                                    output_add("issues_critical", f"{current_part} | Event '{noteText}' found as a Lyric in the EVENTS track.")
+                                else:
+                                    output_add("issues_minor", f"{current_part} | Lyric '{noteText}' found in a non-vocal track.")
+                                pass
+
+                                # Add this to the text data for the track, because this should be there instead of a lyric.
+                                try:
+                                    len(trackNotesMeta[current_part, "text", trackTime])
+                                except:
+                                    trackNotesMeta[current_part, "text", trackTime] = [ noteText ]
+                                else:
+                                    trackNotesMeta[current_part, "text", trackTime].append(noteText)
+                                pass
+                            pass
+                        else:
+                            try:
+                                len(trackNotesMeta[current_part, "text", trackTime])
+                            except:
+                                trackNotesMeta[current_part, "text", trackTime] = [ noteText ]
+                            else:
+                                trackNotesMeta[current_part, "text", trackTime].append(noteText)
+                            pass
+                        pass
+
+                        if current_part == "EVENTS":
+                            try:
+                                len(trackNotesMeta["meta","events",trackTime])
+                            except:
+                                trackNotesMeta["meta","events",trackTime] = [ noteText ]
+                            else:
+                                trackNotesMeta["meta","events",trackTime].append(noteText)
+                            pass
+                        pass
+                    pass
+                pass
+            pass
+
+            # Check to see if we found the length. If we didn't, we write it.
+            try:
+                len(trackNotesMeta[current_part,"length",0])
+            except:
+                trackNotesMeta[current_part,"length",0] = trackTime
+            pass
+
+            output_add("debug_2",f"{current_part} Length: {trackTime}")
+
+            if get_meta("TotalLength") != None:
+                if get_meta("TotalLength") < trackTime:
+                    write_meta("TotalLength", trackTime)
+                pass
+            else:
+                write_meta("TotalLength", trackTime)
             pass
 
         pass

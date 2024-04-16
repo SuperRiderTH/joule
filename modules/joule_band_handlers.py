@@ -50,7 +50,7 @@ pass
 def generate_seconds():
 
     if get_meta("TotalLength") == None:
-        print("File has not been initialized for seconds generation!")
+        joule_print("generate_seconds: File has not been initialized for seconds generation!")
         return False
 
     time_base = 0
@@ -75,7 +75,7 @@ def generate_seconds():
         if last_second < math.floor(seconds_final):
             last_second = math.floor(seconds_final)
             seconds_list.append(test)
-            #print(f"{test} : {seconds_final}")
+            #joule_print(f"{test} : {seconds_final}")
 
     joule_data.SecondsList = seconds_list
     return True
@@ -88,13 +88,13 @@ def format_seconds( note_location:int ):
     # similar to how REAPER displays the time.
 
     if get_meta("TotalLength") == None:
-        print("format_seconds: File has not been initialized for seconds generation!")
+        joule_print("format_seconds: File has not been initialized for seconds generation!")
         return "SecondsError"
 
     raw_time = joule_data.Seconds[note_location]
 
     if raw_time == None:
-        print(note_location)
+        joule_print(note_location)
         return "SecondsError"
 
     time_string = f"{ datetime.timedelta(seconds=raw_time) }"

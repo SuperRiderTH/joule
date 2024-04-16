@@ -1,6 +1,8 @@
 # This is the file for system related tasks that is shared
 # between multiple files.
 import re
+import base64
+import codecs
 import joule_data
 
 import joule_data_rockband
@@ -149,3 +151,24 @@ def cleaner_decimal(input):
     pass
     
 pass
+
+def decode_base64_to_str(input):
+
+    output = input
+
+    try:
+        output = base64.b64decode(output)
+        output = output[2:]
+        #joule_print(f"b64 decode: {output}\n")
+    except:
+
+        try:
+            str.encode(output)
+            output = str.encode(output)
+        except:
+            joule_print(f"failed b64 decode: {output}\n")
+
+    output = codecs.decode(output, 'utf-8')
+    output = str(output)
+
+    return output

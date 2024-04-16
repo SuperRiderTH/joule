@@ -37,6 +37,7 @@ pass
 
 try:
     from reaper_python import *
+    RPR_ShowConsoleMsg("")
 except ImportError:
     pass
 else:

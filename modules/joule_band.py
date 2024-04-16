@@ -5,11 +5,18 @@ import joule_data
 import math
 import re
 
-if joule_data.IncludeMIDI:
-    import mido
-
 from joule_system import *
 from joule_band_handlers import *
+
+try:
+    import mido
+except ImportError:
+    pass
+
+try:
+    from reaper_python import *
+except ImportError:
+    pass
 
 
 #trackNotes[track, note, time]
@@ -36,7 +43,7 @@ last_time_signature_denom      = 4
 
 def process_time_signature( ticks:int, numerator:int, denominator:int ):
 
-    #print(f"Found {numerator}/{denominator} at {ticks}.")
+    #joule_print(f"Found {numerator}/{denominator} at {ticks}.")
 
     global time_signature_last_position
     global time_signature_last_measure
@@ -72,7 +79,7 @@ def section_read( line_start:int ):
 
     sectionName = re.search(r"(?:\ *)(?:\[+)(.+)(?:\])", joule_data.GameDataFile[line_start]).groups()[0]
 
-    print("Found " + sectionName + "...")
+    joule_print("Found " + sectionName + "...")
     joule_data.Tracks.append(sectionName)
 
     if sectionName in joule_data.GameData["sections"]:
@@ -88,7 +95,7 @@ def section_read( line_start:int ):
         if line.strip().startswith("{") or line.strip().startswith('['):
 
             if inSection == True:
-                print(f"Error! Section '{sectionName}' ends early at line {i+1}!")
+                joule_print(f"Error! Section '{sectionName}' ends early at line {i+1}!")
                 return
             else:
                 if line.strip().startswith("{"):
@@ -98,7 +105,7 @@ def section_read( line_start:int ):
             pass
         elif line.strip().startswith("}"):
             joule_data.GameData["sections"][sectionName] = sectionData
-            #print(sectionData)
+            #joule_print(sectionData)
             return
         else:
             sectionData.append(line.strip())
@@ -178,7 +185,7 @@ def initialize_band():
             last_time_signature_num        = 4
             last_time_signature_denom      = 4
 
-            #print("Found " + track.name + "...")
+            #joule_print("Found " + track.name + "...")
             output_add("debug_3",f"Found {track.name}")
             joule_data.Tracks.append(track.name)
 
@@ -321,13 +328,13 @@ def initialize_band():
                     if msg.data[5] == 4:
                         if msg.data[6] == 1:
                             trackNotesOn[ track.name, "tap", trackTime ] = True
-                            #print("Tap On")
+                            #joule_print("Tap On")
                         if msg.data[6] == 0:
                             trackNotesOff[ track.name, "tap", trackTime ] = True
-                            #print("Tap Off")
+                            #joule_print("Tap Off")
                     else:
                         pass
-                        #print(f"{msg.data}")
+                        #joule_print(f"{msg.data}")
 
                 elif msg.type == 'end_of_track':
                     trackNotesMeta[track.name,"length",0] = trackTime
@@ -626,14 +633,51 @@ def initialize_band():
 
     pass
 
-    #print ("========================================")
-    #print(trackNotesOn)
-    #print ("========================================")
-    #print(trackNotesOff)
-    #print ("========================================")
-    #print(trackNotesLyrics)
-    #print ("========================================")
-    #print(trackNotesMeta)
+
+    # REAPER Processing
+    # ========================================
+    if joule_data.GameDataFileType == "REAPER":
+
+        # We have this variable just to make some functions
+        # look nicer instead of using 0 everywhere.
+        current_project = 0
+
+        with open(joule_data.GameDataLocation + ".reaper-info.txt", "w", encoding="utf-8") as _file:
+
+            # Get the amount of items from REAPER.
+            num_media_items = RPR_CountMediaItems(current_project)
+
+            for media_item in range(0, num_media_items):
+
+                _file.write("\n")
+
+                item = RPR_GetMediaItem(current_project, media_item)
+                results = RPR_GetSetItemState(item, "", 1048576)
+
+                # Get the content of the track.
+                track_content = results[2].splitlines()
+
+                for line in track_content:
+                    _file.write("\n\n")
+                    _file.write(line)
+
+                _file.write("\n========================================")
+
+            _file.close()
+
+
+        pass
+
+    pass
+
+    #joule_print ("========================================")
+    #joule_print(trackNotesOn)
+    #joule_print ("========================================")
+    #joule_print(trackNotesOff)
+    #joule_print ("========================================")
+    #joule_print(trackNotesLyrics)
+    #joule_print ("========================================")
+    #joule_print(trackNotesMeta)
 
     output_add("debug_4",f"{trackNotesOn}")
     output_add("debug_4",f"{trackNotesOff}")
@@ -669,7 +713,7 @@ def initialize_band():
                 notesSysEx = get_data_indexes("trackNotesMeta", track, "sysex")
 
                 if len(notesSysEx) > 0:
-                    print(f"SysEx Messages detected in {track}, modifying notes...")
+                    joule_print(f"SysEx Messages detected in {track}, modifying notes...")
 
                     inOpen = False
 
@@ -729,7 +773,7 @@ pass
 
 def process_lyrics():
 
-    #print("Extracting lyrics...")
+    #joule_print("Extracting lyrics...")
 
     indexesVocalsOn        = get_data_indexes("trackNotesOn", 'PART VOCALS', 'phrase')
     indexesVocalsOff       = get_data_indexes("trackNotesOff", 'PART VOCALS', 'phrase')
@@ -770,7 +814,7 @@ def process_lyrics():
 
             phrases.append(phraseText.strip())
             output_add("lyrics", phraseText.strip())
-            #print(phraseText.strip())
+            #joule_print(phraseText.strip())
 
     pass
 
@@ -782,7 +826,7 @@ pass
 
 def process_events():
 
-    #print("Extracting events...")
+    #joule_print("Extracting events...")
 
     indexesEvents          = get_data_indexes("trackNotesMeta", 'meta', 'events')
     events                 = []

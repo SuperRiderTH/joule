@@ -748,6 +748,27 @@ def initialize_band():
         output_add("debug_1",f"TicksSustainLimit: {get_meta('TicksSustainLimit')}")
 
 
+        project_bpm = 120
+        project_time_signature_num = 4
+        project_time_signature_denom = 4
+        project_time_signature_location_time = 0
+
+
+        # Get the beginning of the song's time signature and BPM.
+        (NULL, NULL, project_time_signature_num, project_time_signature_denom, project_bpm) = RPR_TimeMap_GetTimeSigAtTime(0, 0, 0, 0, 0)
+        #joule_print(project_bpm)
+
+        process_time_signature(0, project_time_signature_num, project_time_signature_denom)
+
+        project_time_signature_next_time = RPR_TimeMap2_GetNextChangeTime(0,project_time_signature_location_time)
+
+        while project_time_signature_next_time != -1:
+
+            (NULL, NULL, project_time_signature_num, project_time_signature_denom, project_bpm) = RPR_TimeMap_GetTimeSigAtTime(0, project_time_signature_next_time, 0, 0, 0)
+            process_time_signature(project_time_signature_next_time, project_time_signature_num, project_time_signature_denom)
+            project_time_signature_next_time = RPR_TimeMap2_GetNextChangeTime(0,project_time_signature_next_time)
+            #joule_print(f"{project_time_signature_num}/{project_time_signature_denom} - {project_bpm}")
+
         # Get the information from all the media items.
         for data_index, item in enumerate(project_data):
 

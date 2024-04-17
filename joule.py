@@ -127,24 +127,23 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # Open the file for reading.
     # ========================================
     try:
-        if fileType == "MIDI" or fileType == "CHART":
-
-            # Chart reading in theory can work without MIDI,
-            # but the bpm2tempo function needs to be recreated.
+        if fileType == "MIDI":
             if not joule_data.IncludeMIDI:
                 joule_print("Mido is not loaded, unable to proceed.")
                 return
-
-            if fileType == "MIDI":
+            else:
                 joule_data.GameDataFile = MidiFile(gameDataLocation, clip=True)
-            elif fileType == "CHART":
-                _temp = open(gameDataLocation, mode="r")
-                joule_data.GameDataFile = _temp.readlines()
             pass
-
+        elif fileType == "CHART":
+            _temp = open(gameDataLocation, mode="r")
+            joule_data.GameDataFile = _temp.readlines()
         elif fileType == "BINARY":
             joule_data.GameDataFile = open(gameDataLocation, mode="rb")
         elif fileType == "REAPER":
+
+            if not joule_data.IncludeREAPER:
+                joule_print("REAPER API failed to load, aborting...")
+                return
 
             # Get REAPER metadata.
             rpr_enum = RPR_EnumProjects(-1, "", 512)

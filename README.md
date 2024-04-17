@@ -4,9 +4,10 @@ A modular rhythm game validation tool.
 ## How to run
 
 ### Command line usage:
-* Requirements: `mido`
 
 Using Python 3, run `joule.py` with the location of the game file you wish to run checks on. A .json file will be created next to the file that is being checked.
+
+If you are loading MIDI files, `mido` is required.
 
 A second argument can be given to specify a different game to run checks for. If none is provided, the default source located in `joule_data.py` is assumed.
 

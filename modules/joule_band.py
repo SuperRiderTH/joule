@@ -505,7 +505,7 @@ def initialize_band():
                         output_add("debug_1",f"{track} | {lineKey} | Tempo position anchors are not supported.")
 
                     elif noteType == "B":
-                        trackNotesMeta["meta","tempo",int(lineKey)] = mido.bpm2tempo((float(noteValue) / 1000))
+                        trackNotesMeta["meta","tempo",int(lineKey)] = bpm2tempo((float(noteValue) / 1000))
                         
                     elif noteType == "TS":
                         num = int(noteValue)
@@ -759,13 +759,22 @@ def initialize_band():
         #joule_print(project_bpm)
 
         process_time_signature(0, project_time_signature_num, project_time_signature_denom)
+        trackNotesMeta["meta","tempo",0] = bpm2tempo(project_bpm)
 
         project_time_signature_next_time = RPR_TimeMap2_GetNextChangeTime(0,project_time_signature_location_time)
 
         while project_time_signature_next_time != -1:
 
+            #joule_print(project_time_signature_next_time)
             (NULL, NULL, project_time_signature_num, project_time_signature_denom, project_bpm) = RPR_TimeMap_GetTimeSigAtTime(0, project_time_signature_next_time, 0, 0, 0)
-            process_time_signature(project_time_signature_next_time, project_time_signature_num, project_time_signature_denom)
+
+            # Convert the time we are at to ticks for the note locations.
+            _QN = RPR_TimeMap_timeToQN(project_time_signature_next_time)
+            _ticks = int(_QN * joule_data.TicksPerBeat)
+
+            process_time_signature(_ticks, project_time_signature_num, project_time_signature_denom)
+            trackNotesMeta["meta","tempo",_ticks] = bpm2tempo(project_bpm)
+
             project_time_signature_next_time = RPR_TimeMap2_GetNextChangeTime(0,project_time_signature_next_time)
             #joule_print(f"{project_time_signature_num}/{project_time_signature_denom} - {project_bpm}")
 
@@ -830,11 +839,9 @@ def initialize_band():
                     if textData[0] == 5:
                         messageType = "lyrics"
                     pass
-
-                pass
-
+                
                 # Notes
-                if line.lower().startswith("e"):
+                elif line.lower().startswith("e"):
                     note_parts = line.split()
 
                     trackTime += int( note_parts[1] )

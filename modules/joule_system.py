@@ -174,3 +174,16 @@ def decode_reaper_text(input):
     textString = str(textString)
 
     return [textType, textString]
+
+# This function is taken straight out of Mido,
+# so that we can use it here. It is just a simple calculation, 
+# but we should at least say where it came from.
+def bpm2tempo(bpm, time_signature=(4, 4)):
+    """Convert BPM (beats per minute) to MIDI file tempo (microseconds per
+    quarter note).
+
+    Depending on the chosen time signature a bar contains a different number of
+    beats. These beats are multiples/fractions of a quarter note, thus the
+    returned BPM depend on the time signature. Normal rounding applies.
+    """
+    return int(round(60 * 1e6 / bpm * time_signature[1] / 4.))

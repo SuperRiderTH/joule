@@ -158,32 +158,50 @@ def decode_reaper_text(input):
 
     try:
         output = base64.b64decode(output)
+
         textType = int(output[1])
-        textString = output[2:]
+
+        # Catch Sysex.
+        if textType != 80:
+            textData = output[2:]
+        else:
+            textData = list(output)
+        pass
+
     except:
-
         try:
-            str.encode(output)
+            textData = str.encode(output)
             textType = 1
-            textString = str.encode(output)
         except:
-            joule_print(f"failed b64 decode: {output}")
+            output_add("debug_1",f"Joule Error | decode_reaper_text | Failed b64 decode: {output}")
+        pass
+    pass
+
+    # Do not decode Sysex events.
+    if textType != 80:
+        try:
+            textData = codecs.decode(textData, 'utf-8')
+            textData = str(textData)
+        except:
+            output_add("debug_1",f"Joule Error | decode_reaper_text | Failed utf-8 decode: {output}, {[textType, textString]}")
+        pass
+    else:
+        
+        # Format the Sysex event in the same way as the MIDI reader.
+        if textData[0] == 240:
+            textData.pop(0)
+            textData.pop()
+        pass
+
+        # We need to clamp these numbers to match what Mido reads.
+        for index, item in enumerate(textData):
+            if item > 127:
+                textData[index] = 127
             pass
+        pass
 
-    textString = codecs.decode(textString, 'utf-8')
-    textString = str(textString)
+    pass
+    
 
-    return [textType, textString]
+    return [textType, textData]
 
-# This function is taken straight out of Mido,
-# so that we can use it here. It is just a simple calculation, 
-# but we should at least say where it came from.
-def bpm2tempo(bpm, time_signature=(4, 4)):
-    """Convert BPM (beats per minute) to MIDI file tempo (microseconds per
-    quarter note).
-
-    Depending on the chosen time signature a bar contains a different number of
-    beats. These beats are multiples/fractions of a quarter note, thus the
-    returned BPM depend on the time signature. Normal rounding applies.
-    """
-    return int(round(60 * 1e6 / bpm * time_signature[1] / 4.))

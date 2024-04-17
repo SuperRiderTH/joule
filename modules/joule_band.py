@@ -5,7 +5,6 @@ import joule_data
 import math
 import re
 
-from joule_system import *
 from joule_band_handlers import *
 
 try:
@@ -839,6 +838,10 @@ def initialize_band():
                     if textData[0] == 5:
                         messageType = "lyrics"
                     pass
+
+                    if textData[0] == 80:
+                        messageType = "sysex"
+                    pass
                 
                 # Notes
                 elif line.lower().startswith("e"):
@@ -950,6 +953,28 @@ def initialize_band():
                             else:
                                 trackNotesMeta["meta","events",trackTime].append(noteText)
                             pass
+                        pass
+                    elif messageType == 'sysex':
+
+                        try:
+                            len(trackNotesMeta[current_part,"sysex",trackTime])
+                        except:
+                            trackNotesMeta[current_part,"sysex",trackTime] = [ noteText ]
+                        else:
+                            trackNotesMeta[current_part,"sysex",trackTime].append(noteText)
+                        pass
+
+                        # If we find tap note modifiers, we want to translate that.
+                        if noteText[5] == 4:
+                            if noteText[6] == 1:
+                                trackNotesOn[ current_part, "tap", trackTime ] = True
+                                #joule_print("Tap On")
+                            if noteText[6] == 0:
+                                trackNotesOff[ current_part, "tap", trackTime ] = True
+                                #joule_print("Tap Off")
+                        else:
+                            pass
+                            #joule_print(f"{noteText}")
                         pass
                     pass
                 pass

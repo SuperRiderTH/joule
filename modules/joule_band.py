@@ -679,19 +679,21 @@ def initialize_band():
 
         pass
 
-        # Dump REAPER info to a file for reading.
-        with open(joule_data.GameDataLocation + ".reaper-info.txt", "w", encoding="utf-8") as _file:
+        if joule_data.Debug > 2:
 
-            for line in project_dump:
-                _file.write(line)
-                _file.write("\n")
+            # Dump REAPER info to a file for reading.
+            with open(joule_data.GameDataLocation + ".reaper-info.txt", "w", encoding="utf-8") as _file:
 
-                if line == "~END":
+                for line in project_dump:
+                    _file.write(line)
                     _file.write("\n")
 
-            _file.close()
+                    if line == "~END":
+                        _file.write("\n")
 
-        pass
+                _file.close()
+
+            pass
 
 
         # Grab the Ticks Per Beat from the REAPER project.

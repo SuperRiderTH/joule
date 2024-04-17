@@ -70,6 +70,8 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
     joule_data.GameDataLocation = gameDataLocation
 
+    joule_data.GameData["sections"] = {}
+
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):
             joule_data.GameDataOutput.update( { f"debug_{i+1}":{}, } )
@@ -190,77 +192,35 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                     if "multiplier" in keyCheck and "note" in keyCheck:
                         write_meta("NoteOverdrive", int(lineGroups[1].strip()))
                         joule_print("Found Multiplier Note.")
+                    pass
 
                     if "whammy" in keyCheck and "cutoff" in keyCheck:
                         write_meta("WhammyCutoff", float(lineGroups[1].strip()))
                         joule_print("Found Whammy Cutoff.")
+                    pass
 
+                pass
+            pass
         except OSError:
             joule_print("No song.ini found.")
         pass
     pass
-    
-    if joule_data.GameSource in joule_data.GameSourceRBLike:
-        
-        initTest = initialize_band()
 
-        if initTest != False:
-            process_lyrics()
-            process_events()
-        
-            if ignoreChecks == False:
-            
-                for part in joule_data.TracksFound:
+    initTest = initialize_band()
 
-                    if part in ( "PART DRUMS", "PART DRUMS_2X"):
-                        rbn_drums_limbs(part)
-                        rbn_drums_fills(part)
-                        tow_check(part)
-                    pass
+    if initTest != False:
+        process_lyrics()
+        process_events()
 
-                    if part in ( "PART GUITAR", "PART BASS", "PART RHYTHM"):
-                        rbn_guitar_chords(part)
-                        rbn_broken_chords(part)
-                        rbn_hopos(part)
-                        validate_sustains(part)
-                        tow_check(part)
-                    pass
+        if not ignoreChecks:
 
-                    if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
-                        
-                        if part == "PART VOCALS":
-                            tow_check(part)
-                        pass
-                    
-                        rbn_vocals_lyrics(part)
-                        validate_spacing_vocals(part)
-                        
-                    pass
+            DrumsTracks = [
+                "PART DRUMS",
+                "PART DRUMS_2X",
+                "Drums",
+            ]
 
-                    if part == "PART KEYS":
-                        
-                        rbn_hopos(part)
-                        rbn_broken_chords(part)
-                        validate_sustains(part)
-
-                    pass
-
-                    if part.startswith("PART REAL_KEYS"):
-                        rbn_keys_real_chords(part)
-                        rbn_keys_real_shifts(part)
-                        validate_sustains(part, True)
-                        pass
-                    pass
-
-                validate_instrument_phrases()
-                
-            pass
-        pass
-    elif joule_data.GameSource == "ch" or joule_data.GameSource == "ghwtde":
-        
-        joule_data.GameData["sections"] = {}
-        
-        GuitarTracks = [
+            GuitarTracks = [
                 "PART GUITAR",
                 "PART BASS",
                 "PART RHYTHM",
@@ -271,63 +231,52 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                 "LeadRival1",
                 "LeadRival2",
             ]
-        
-        initTest = initialize_band()
-        
-        if initTest != False:
-            process_lyrics()
-            process_events()
 
-            if ignoreChecks == False:
-                for part in joule_data.TracksFound:
+            for part in joule_data.TracksFound:
 
-                    if part in ( "PART DRUMS", "PART DRUMS_2X", "Drums"):
-                        rbn_drums_limbs(part)
-                        rbn_drums_fills(part)
-                    pass
+                if part in DrumsTracks:
+                    rbn_drums_limbs(part)
+                    rbn_drums_fills(part)
+                    tow_check(part)
+                pass
 
-                    if part in GuitarTracks:
-                        rbn_guitar_chords(part)
-                        rbn_hopos(part)
-                        validate_sustains(part)
-                    pass
+                if part in GuitarTracks:
+                    rbn_guitar_chords(part)
+                    rbn_broken_chords(part)
+                    rbn_hopos(part)
+                    validate_sustains(part)
+                    tow_check(part)
+                pass
 
-                    if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
-                        
-                        if part == "PART VOCALS":
-                            tow_check()
-                        pass
+                if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
                     
-                        rbn_vocals_lyrics(part)
-                        validate_spacing_vocals(part)
-                        
+                    if part == "PART VOCALS":
+                        tow_check(part)
                     pass
+                
+                    rbn_vocals_lyrics(part)
+                    validate_spacing_vocals(part)
+                    
+                pass
 
-                    if part in ( "PART KEYS", "Keyboard" ):
-                        
-                        rbn_hopos(part)
-                        
-                        for diff in joule_data_rockband.diff_array:
-                            rbn_broken_chords(part,diff)
-                        pass
+                if part in ( "PART KEYS", "Keyboard" ):
+                    
+                    rbn_hopos(part)
+                    rbn_broken_chords(part)
+                    validate_sustains(part)
 
-                        validate_sustains(part)
+                pass
 
+                if part.startswith("PART REAL_KEYS"):
+                    rbn_keys_real_chords(part)
+                    rbn_keys_real_shifts(part)
+                    validate_sustains(part, True)
                     pass
+                pass
 
-                    if part.startswith("PART REAL_KEYS"):
-                        rbn_keys_real_chords(part)
-                        rbn_keys_real_shifts(part)
-                        validate_sustains(part, True)
-                        pass
-                    pass
-
-                validate_instrument_phrases()
-            pass
+            validate_instrument_phrases()
+            
         pass
-    else:
-        joule_print ("Invalid game specified!")
-        return False
     pass
 
     if not ignoreChecks and joule_data.AllowMuse:

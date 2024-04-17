@@ -183,10 +183,10 @@ def decode_reaper_text(input):
             textData = codecs.decode(textData, 'utf-8')
             textData = str(textData)
         except:
-            output_add("debug_1",f"Joule Error | decode_reaper_text | Failed utf-8 decode: {output}, {[textType, textString]}")
+            output_add("debug_1",f"Joule Error | decode_reaper_text | Failed utf-8 decode: {output}, {[textType, textData]}")
         pass
     else:
-        
+
         # Format the Sysex event in the same way as the MIDI reader.
         if textData[0] == 240:
             textData.pop(0)

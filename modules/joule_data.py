@@ -61,5 +61,4 @@ GameSourceHasSongINI = {
     "ghwtde",
 }
 
-BrokenChordsAllowed     = False
-LowerHOPOsAllowed       = False
+

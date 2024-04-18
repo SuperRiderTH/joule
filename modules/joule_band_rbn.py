@@ -39,8 +39,8 @@ def set_source_data():
     notesname_instruments_array = base.notesname_instruments_array
     span_limit_keys_pro = base.span_limit_keys_pro
 
-    joule_data.BrokenChordsAllowed = base.brokenChordsAllowed
-    joule_data.LowerHOPOsAllowed = base.lowerHOPOsAllowed
+    joule_band.BrokenChordsAllowed = base.brokenChordsAllowed
+    joule_band.LowerHOPOsAllowed = base.lowerHOPOsAllowed
 
     tempNO = get_meta("NoteOverdrive")
     if tempNO != None:
@@ -272,7 +272,7 @@ def rbn_hopos(partname:str):
     set_source_data()
     result = True
 
-    if joule_data.LowerHOPOsAllowed:
+    if joule_band.LowerHOPOsAllowed:
         return
     else:
 
@@ -870,7 +870,7 @@ def rbn_broken_chords(partname:str):
 
     chordLimit = False
 
-    if joule_data.BrokenChordsAllowed\
+    if joule_band.BrokenChordsAllowed\
     or partname in ("PART KEYS", "Keyboard"):
         brokenChordsAllowed = True
     pass

@@ -28,6 +28,9 @@ time_signature_last_measure     = 0
 last_time_signature_num        = 4
 last_time_signature_denom      = 4
 
+BrokenChordsAllowed     = False
+LowerHOPOsAllowed       = False
+
 # Functions
 # ========================================
 

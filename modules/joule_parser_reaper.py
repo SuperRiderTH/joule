@@ -363,21 +363,25 @@ def joule_parse_reaper():
             pass
         pass
 
-        # Check to see if we found the length. If we didn't, we write it.
-        try:
-            len(trackNotesMeta[current_part,"length",0])
-        except:
-            trackNotesMeta[current_part,"length",0] = trackTime
-        pass
+        if current_part != None:
 
-        output_add("debug_2",f"{current_part} Length: {trackTime}")
+            # Check to see if we found the length. If we didn't, we write it.
+            try:
+                len(trackNotesMeta[current_part,"length",0])
+            except:
+                trackNotesMeta[current_part,"length",0] = trackTime
+            pass
 
-        if get_meta("TotalLength") != None:
-            if get_meta("TotalLength") < trackTime:
+            output_add("debug_2",f"{current_part} Length: {trackTime}")
+
+            if get_meta("TotalLength") != None:
+                if get_meta("TotalLength") < trackTime:
+                    write_meta("TotalLength", trackTime)
+                pass
+            else:
                 write_meta("TotalLength", trackTime)
             pass
-        else:
-            write_meta("TotalLength", trackTime)
+
         pass
 
     pass

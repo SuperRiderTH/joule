@@ -39,8 +39,8 @@ def set_source_data():
     notesname_instruments_array = base.notesname_instruments_array
     span_limit_keys_pro = base.span_limit_keys_pro
 
-    joule_data.BrokenChordsAllowed = base.brokenChordsAllowed
-    joule_data.LowerHOPOsAllowed = base.lowerHOPOsAllowed
+    joule_band.BrokenChordsAllowed = base.brokenChordsAllowed
+    joule_band.LowerHOPOsAllowed = base.lowerHOPOsAllowed
 
     tempNO = get_meta("NoteOverdrive")
     if tempNO != None:
@@ -57,7 +57,7 @@ def validate_THING(partname:str):
     result = True
 
     for diff in diff_array:
-        print(f"Processsing THING for {partname} on {diff_array[diff]}...")
+        joule_print(f"Processsing THING for {partname} on {diff_array[diff]}...")
     return
 
     output_add("check_results", f"{partname} | {inspect.stack()[0][3]} | {result}")
@@ -118,7 +118,7 @@ def validate_sustains(partname:str, isRealKeys=False):
         if not partname.startswith("PART REAL_KEYS"):
             statusString += f" on {diff_array[diff]}"
             
-        print(f"{statusString}...")
+        joule_print(f"{statusString}...")
 
 
         lastNoteOn          = 0
@@ -143,7 +143,7 @@ def validate_sustains(partname:str, isRealKeys=False):
 
                     if lastNoteWasSustain:
                         sustainLength = joule_data.Seconds[lastNoteOff] - joule_data.Seconds[lastNoteOn]
-                        #print(f"{format_location(lastNoteOn, True)} - {sustainLength}")
+                        #joule_print(f"{format_location(lastNoteOn, True)} - {sustainLength}")
 
                         if sustainLength < sustainMinimum:
                             output_add("issues_major", f"{partname} | {format_location(lastNoteOn)} | Note on {diff_array[diff]} is too short to be a sustain.")
@@ -190,7 +190,7 @@ def validate_spacing_vocals(partname:str):
     noteLength16    = joule_data.TicksPerBeat / 4  #120
     noteLength16T   = joule_data.TicksPerBeat / 6  #80
 
-    print(f"Processsing vocal note spacing for {partname}...")
+    joule_print(f"Processsing vocal note spacing for {partname}...")
 
     # All harmonies must follow the Phrase Markers from HARM1.
     if partname != "PART VOCALS":
@@ -272,11 +272,11 @@ def rbn_hopos(partname:str):
     set_source_data()
     result = True
 
-    if joule_data.LowerHOPOsAllowed:
+    if joule_band.LowerHOPOsAllowed:
         return
     else:
 
-        print(f"Processsing HOPOs for {partname}...")
+        joule_print(f"Processsing HOPOs for {partname}...")
 
         for diff in diff_array:
             if diff == "m" or diff == "e":
@@ -316,7 +316,7 @@ pass
 
 
 def rbn_vocals_lyrics(partname:str):
-    print(f"Processsing Lyrics for {partname}...")
+    joule_print(f"Processsing Lyrics for {partname}...")
     set_source_data()
     result = True
 
@@ -459,7 +459,7 @@ def rbn_guitar_chords(partname:str):
             output_add("debug_3", f"{partname} | rbn_guitar_chords | No notes found on {diff_array[diff]}.")
             continue
 
-        print(f"Processsing chords for {partname} on {diff_array[diff]}...")
+        joule_print(f"Processsing chords for {partname} on {diff_array[diff]}...")
 
         for note in notesAll:
 
@@ -533,7 +533,7 @@ def rbn_drums_limbs(partname:str):
             output_add("debug_3", f"{partname} | rbn_drums_limbs | No notes found on {diff_array[diff]}.")
             continue
 
-        print(f"Processsing limbs for {partname} on {diff_array[diff]}...")
+        joule_print(f"Processsing limbs for {partname} on {diff_array[diff]}...")
 
         notesOn       = {}
         notesOff      = {}
@@ -611,7 +611,7 @@ def rbn_drums_fills(partname:str):
     set_source_data()
     result = True
 
-    print(f"Processsing fills for {partname}...")
+    joule_print(f"Processsing fills for {partname}...")
 
     fillStart = get_data_indexes("trackNotesOn",partname,"fill_kick")
     fillEnd =  get_data_indexes("trackNotesOff",partname,"fill_kick")
@@ -769,7 +769,7 @@ def validate_instrument_phrases():
     for noteType in notesToCheck:
 
         for track in noteCheck:
-            print(f"Checking {noteType} for {track}...")
+            joule_print(f"Checking {noteType} for {track}...")
             result = True
             for diff in diff_array:
 
@@ -870,7 +870,7 @@ def rbn_broken_chords(partname:str):
 
     chordLimit = False
 
-    if joule_data.BrokenChordsAllowed\
+    if joule_band.BrokenChordsAllowed\
     or partname in ("PART KEYS", "Keyboard"):
         brokenChordsAllowed = True
     pass
@@ -965,7 +965,7 @@ pass
 def rbn_keys_real_shifts(partname:str):
     set_source_data()
     
-    print(f"Processsing ranges for {partname}...")
+    joule_print(f"Processsing ranges for {partname}...")
     result = True
 
     diff = partname[len(partname)-1].lower()
@@ -1080,7 +1080,7 @@ def rbn_keys_real_shifts(partname:str):
             pass
         pass
 
-        #print(f"{format_location(note)} - {notesHappening}")
+        #joule_print(f"{format_location(note)} - {notesHappening}")
 
     pass
 
@@ -1091,7 +1091,7 @@ pass
 def rbn_keys_real_chords(partname:str):
     set_source_data()
 
-    print(f"Processsing chords for {partname}...")
+    joule_print(f"Processsing chords for {partname}...")
     result = True
 
     notesOn       = {}

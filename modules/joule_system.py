@@ -1,6 +1,8 @@
 # This is the file for system related tasks that is shared
 # between multiple files.
 import re
+import base64
+import codecs
 import joule_data
 
 import joule_data_rockband
@@ -21,6 +23,19 @@ def output_add( output_type:str, output:str, unique=False ):
     _index = len(joule_data.GameDataOutput[output_type])
     joule_data.GameDataOutput[output_type][_index] = output
 
+pass
+
+# We have a custom print function, because we need to change where we are outputting to.
+try:
+    from reaper_python import RPR_ShowConsoleMsg
+except ImportError:
+    def joule_print(string:str):
+        print(string)
+    pass
+else:
+    def joule_print(string:str):
+        RPR_ShowConsoleMsg(str(string) + "\n")
+    pass
 pass
 
 def get_source_data():
@@ -136,3 +151,57 @@ def cleaner_decimal(input):
     pass
     
 pass
+
+def decode_reaper_text(input):
+
+    output = input
+
+    try:
+        output = base64.b64decode(output)
+
+        textType = int(output[1])
+
+        # Catch Sysex.
+        if textType != 80:
+            textData = output[2:]
+        else:
+            textData = list(output)
+        pass
+
+    except:
+        try:
+            textData = str.encode(output)
+            textType = 1
+        except:
+            output_add("debug_1",f"Joule Error | decode_reaper_text | Failed b64 decode: {output}")
+        pass
+    pass
+
+    # Do not decode Sysex events.
+    if textType != 80:
+        try:
+            textData = codecs.decode(textData, 'utf-8')
+            textData = str(textData)
+        except:
+            output_add("debug_1",f"Joule Error | decode_reaper_text | Failed utf-8 decode: {output}, {[textType, textData]}")
+        pass
+    else:
+
+        # Format the Sysex event in the same way as the MIDI reader.
+        if textData[0] == 240:
+            textData.pop(0)
+            textData.pop()
+        pass
+
+        # We need to clamp these numbers to match what Mido reads.
+        for index, item in enumerate(textData):
+            if item > 127:
+                textData[index] = 127
+            pass
+        pass
+
+    pass
+    
+
+    return [textType, textData]
+

@@ -114,16 +114,16 @@ def muse_run(GameData = None):
         joule_data.GameData = GameData
 
     if get_meta("TotalLength") == None:
-        print("Muse needs to be ran with a processed GameData!")
+        joule_print("Muse needs to be ran with a processed GameData!")
         return False
         
 
     if joule_data.GameSource not in joule_data.GameSourceRBLike:
-        print(f"{joule_data.GameSourceFull} is not a Rock Band style game! Muse will give you a estimation based on Rock Band standards.")
+        joule_print(f"{joule_data.GameSourceFull} is not a Rock Band style game! Muse will give you a estimation based on Rock Band standards.")
 
     joule_data.GameDataOutput.update( { "muse_difficulties":{} } )
 
-    print(f"Analysing difficulties...\n")
+    joule_print(f"Analysing difficulties...\n")
 
     for part in joule_data.TracksFound:
         if part in ValidTracks:
@@ -170,7 +170,7 @@ def muse_check(part:str):
 
     if currentInstrument != None:
 
-        #print(f"{part}")
+        #joule_print(f"{part}")
 
         if currentInstrument == "Guitar":
             partToFind = "diff_guitar"
@@ -303,7 +303,7 @@ def muse_check(part:str):
                             noteMaskPattern = noteMaskPatternTemp
                         elif len(noteMaskPatternTemp) > 2:
                             _score[note] += scoreNote["Pattern"] * min(len(noteMaskPattern), 10)
-                            #print(f"Pattern Found \n{noteMaskPattern}")
+                            #joule_print(f"Pattern Found \n{noteMaskPattern}")
                             noteMaskPatternTemp = []
                         '''
                     else:
@@ -424,7 +424,7 @@ def muse_check(part:str):
             strDiff += f" | Known: {tierKnown}"
 
         _output = f"{part} | {strDiff} | {difficultyIcons[_tempDiff]} | {difficultyNames[_tempDiff]}\n{cleaner_decimal(_finalNPS)} NPS\n{ cleaner_decimal(_averageScore) } Average Score | {cleaner_decimal(_calcScoreNPS)} Calculated NPS Score\n{cleaner_decimal(_finalScore)} Final Score\n"
-        print(_output)
+        joule_print(_output)
 
         _outputFile = f"{part} | {strDiff} | {cleaner_decimal(_finalNPS)} NPS | {cleaner_decimal(_finalScore)} Score"
         output_add("muse_difficulties", f"{_outputFile}")

@@ -4,7 +4,6 @@ from enum import Enum
 import sys
 import json
 import os
-import shutil
 import configparser
 
 # Module loading.
@@ -84,9 +83,13 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
             config.read( os.path.join( sys.path[0], "joule_config.ini" ) )
             configLoaded = True
 
-            joule_data.AllowMuse            = config["Muse"].getboolean("AllowMuse")
-            joule_data.Debug                = int( config["Debug"]["Level"] )
             joule_data.GameSourceDefault    = str( config["Joule"]["GameSourceDefault"] )
+            joule_data.OutputNextToSource   = config["Joule"].getboolean("OutputNextToSource")
+            joule_data.OutputToOutputDir    = config["Joule"].getboolean("OutputToOutputDir")
+
+            joule_data.AllowMuse            = config["Muse"].getboolean("AllowMuse")
+            
+            joule_data.Debug                = int( config["Debug"]["Level"] )
 
         except Exception as ex:
             joule_print(f"Configuration Error!\n\n{ex}")
@@ -318,16 +321,19 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # Output to json since we are done.
     # ========================================
 
-    with open(gameDataLocation + ".json", "w") as write:
-        json.dump(joule_data.GameDataOutput, write, indent=4)
+    if joule_data.OutputNextToSource == True:
+        with open( gameDataLocation + ".json" , "w") as write:
+            json.dump(joule_data.GameDataOutput, write, indent=4)
 
-    if joule_data.GameDataFileType == "REAPER":
+    # Running from REAPER will always create an output in the folder.
+    if joule_data.GameDataFileType == "REAPER" or joule_data.OutputToOutputDir == True:
         _tempOutputLocation = os.path.join(sys.path[0], "output")
 
         if not os.path.exists(_tempOutputLocation):
             os.makedirs(_tempOutputLocation)
 
-        shutil.copyfile(gameDataLocation + ".json", os.path.join(_tempOutputLocation, "output.json"))
+        with open( os.path.join(_tempOutputLocation, "output.json") , "w") as write:
+            json.dump(joule_data.GameDataOutput, write, indent=4)
 
     return initTest
 pass

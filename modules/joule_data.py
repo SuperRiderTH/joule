@@ -17,6 +17,9 @@ Debug           = 2
 GameDataFile        = None
 GameDataFileType    = "NONE"
 
+OutputNextToSource  = True
+OutputToOutputDir   = False
+
 GameData            = {}
 GameDataOutput      = {}
 GameSource          = ""

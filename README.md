@@ -2,6 +2,7 @@
 A modular rhythm game validation tool.
 
 ## How to run
+- Some variables can be changed using values in `joule_config.ini`
 
 ### Command line usage:
 
@@ -25,7 +26,7 @@ REAPER must have Python 3 enabled for use in ReaScripts.
 
 Once Python is enabled, all you need to do is run `joule.py` as a ReaScript in REAPER.
 
-The default game source located in `joule_data.py` is used.
+The default game source located in `joule_data.py` or `joule_config.ini` is used.
 
 ## Supported Games:
 * Rock Band 3: `rb3`

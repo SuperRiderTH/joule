@@ -5,6 +5,7 @@ import sys
 import json
 import os
 import shutil
+import configparser
 
 # Module loading.
 tempDirectory = os.path.join(sys.path[0], "modules")
@@ -22,7 +23,6 @@ __version__ = joule_data.Version
 
 gameDataLocation    = ""
 ignoreChecks        = False
-
 
 # Imports
 # ========================================
@@ -43,6 +43,8 @@ except ImportError:
 else:
     joule_data.IncludeREAPER = True
 pass
+
+
 
 
 # Functions
@@ -67,10 +69,33 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     joule_data.GameDataOutput.update( { "issues_critical":{}, "issues_major":{}, "issues_minor":{} } )
     joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )
     joule_data.GameDataOutput.update( { "check_results":{} } )
+    joule_data.GameDataOutput.update( { "tracks":{}, "tracks_found":{} } )
 
     joule_data.GameDataLocation = gameDataLocation
 
     joule_data.GameData["sections"] = {}
+
+    # Config file reading
+    config = configparser.ConfigParser()
+    configLoaded = False
+
+    if os.path.isfile( os.path.join( sys.path[0], "joule_config.ini" ) ):
+        try:
+            config.read( os.path.join( sys.path[0], "joule_config.ini" ) )
+            configLoaded = True
+
+            joule_data.AllowMuse            = config["Muse"].getboolean("AllowMuse")
+            joule_data.Debug                = int( config["Debug"]["Level"] )
+            joule_data.GameSourceDefault    = str( config["Joule"]["GameSourceDefault"] )
+
+        except Exception as ex:
+            joule_print(f"Configuration Error!\n\n{ex}")
+        pass
+    else:
+        pass
+    pass
+
+
 
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):
@@ -122,6 +147,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         _client = "CLI"
 
     output_add("info",f"Client: {_client}")
+    output_add("info",f"Configuration Loaded: {configLoaded}")
 
 
     fileType = joule_data.GameDataFileType
@@ -281,6 +307,13 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
 
     if not ignoreChecks and joule_data.AllowMuse:
         muse_run()
+
+
+    for track in joule_data.Tracks:
+        output_add("tracks", f"{track}")
+
+    for track in joule_data.TracksFound:
+        output_add("tracks_found", f"{track}")
 
     # Output to json since we are done.
     # ========================================

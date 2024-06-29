@@ -1,6 +1,8 @@
 # This is the file for system related tasks that is shared
 # between multiple files.
 import re
+import os
+import sys
 import base64
 import codecs
 import joule_data
@@ -31,10 +33,28 @@ try:
 except ImportError:
     def joule_print(string:str):
         print(string)
+
+        if joule_data.OutputDebugFile == True:
+            _tempOutputLocation = os.path.join(sys.path[0], "/joule_log.txt")
+
+            f = open(_tempOutputLocation, "a")
+            f.write(str(string) + "\n")
+            f.close()
+        pass
+
     pass
 else:
     def joule_print(string:str):
         RPR_ShowConsoleMsg(str(string) + "\n")
+
+        if joule_data.OutputDebugFile == True:
+            _tempOutputLocation = os.path.join(sys.path[0], "joule_log.txt")
+
+            f = open(_tempOutputLocation, "a")
+            f.write(str(string) + "\n")
+            f.close()
+        pass
+
     pass
 pass
 
@@ -126,6 +146,35 @@ def get_data_indexes_range(type:str, track:str, key:str, time1:int, time2:int):
     return _tempData
 pass
 
+def extract_data(type:str, track:str, rename:str = ""):
+
+# This function extracts the whole track to a separate dictionary,
+# optionally renames the track if provided.
+
+    if rename != "":
+        _trackName = rename
+    else:
+        _trackName = track
+    pass
+
+    _tempData = {}
+
+    for entry in joule_data.GameData[type]:
+        if entry[0] == track:
+
+            if joule_data.GameData[type][entry[0],entry[1],entry[2]] == True:
+                _result = True
+            else:
+                _result = False
+
+            _tempData[_trackName,entry[1],entry[2]] = _result
+        pass
+    pass
+ 
+    return _tempData
+
+pass
+
 
 def line_groups(inputStr:str):
 
@@ -204,4 +253,4 @@ def decode_reaper_text(input):
     
 
     return [textType, textData]
-
+pass

@@ -64,10 +64,10 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     joule_data.Tracks.clear()
     joule_data.TracksFound.clear()
 
-    joule_data.GameDataOutput.update( { "info":{} } )
+    joule_data.GameDataOutput.update( { "info":{},"messages":{} } )
     joule_data.GameDataOutput.update( { "issues_critical":{}, "issues_major":{}, "issues_minor":{} } )
     joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )
-    joule_data.GameDataOutput.update( { "check_results":{} } )
+    joule_data.GameDataOutput.update( { "check_results":{}, "flags":{} } )
     joule_data.GameDataOutput.update( { "tracks":{}, "tracks_found":{} } )
 
     joule_data.GameDataLocation = gameDataLocation
@@ -84,12 +84,14 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
             configLoaded = True
 
             joule_data.GameSourceDefault    = str( config["Joule"]["GameSourceDefault"] )
+            joule_data.IgnoreModNotes       = config["Joule"].getboolean("IgnoreModNotes")
             joule_data.OutputNextToSource   = config["Joule"].getboolean("OutputNextToSource")
             joule_data.OutputToOutputDir    = config["Joule"].getboolean("OutputToOutputDir")
 
             joule_data.AllowMuse            = config["Muse"].getboolean("AllowMuse")
             
             joule_data.Debug                = int( config["Debug"]["Level"] )
+            joule_data.OutputDebugFile      = config["Debug"].getboolean("OutputDebugFile")
 
         except Exception as ex:
             joule_print(f"Configuration Error!\n\n{ex}")
@@ -103,6 +105,13 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):
             joule_data.GameDataOutput.update( { f"debug_{i+1}":{}, } )
+
+    if joule_data.OutputDebugFile == True:
+        _tempOutputLocation = os.path.join(sys.path[0], "joule_log.txt")
+
+        # Create the output file, close it for now.
+        f = open(_tempOutputLocation, "w")
+        f.close()
 
 
     # Set the file type that we are reading.
@@ -238,6 +247,8 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     initTest = initialize_band()
 
     if initTest != False:
+        
+        check_mod_enhancements()
         process_lyrics()
         process_events()
 

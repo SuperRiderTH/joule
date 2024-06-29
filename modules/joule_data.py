@@ -1,7 +1,7 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 2
-MinorVersion    = 0
+MinorVersion    = 1
 PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
@@ -13,10 +13,12 @@ AllowMuse       = False
 
 # Verbosity of the debug output.
 Debug           = 2
+OutputDebugFile = False
 
 GameDataFile        = None
 GameDataFileType    = "NONE"
 
+IgnoreModNotes      = False
 OutputNextToSource  = True
 OutputToOutputDir   = False
 

@@ -279,4 +279,60 @@ def patch_sysex():
             pass
         pass
     pass
+
+def check_mod_enhancements():
+
+    if joule_data.IgnoreModNotes == True:
+        return
+
+    # RB3 Enhanced 2x Kicks
+    if joule_data.GameSource == "rb3":
+        if len(get_data_indexes("trackNotesOn", "PART DRUMS", "95")) > 0:
+            output_add("messages", f"Expert+ kick notes found on Drums. This song is compatible with the \"Double Bass Pedal\" modifier in RB3Enhanced.")
+            output_add("flags", "drums_has_2x")
+
+            if "PART DRUMS_2X" not in joule_data.TracksFound:
+                joule_print("Expert+ Kick notes found on \"PART DRUMS\", PART DRUMS_2X will be created to process this.")
+
+                # Clean the issues of Unknown notes, because we are dealing with them.
+                tempDict = {}
+
+                for index in joule_data.GameDataOutput["issues_critical"]:
+                    message = joule_data.GameDataOutput["issues_critical"][index]
+
+                    if "PART DRUMS " in message \
+                    and "Unknown MIDI Note '95' found!" in message:
+                        pass
+                    else:
+                        tempDict[len(tempDict)] = message
+                    pass
+
+                pass
+
+                joule_data.GameDataOutput["issues_critical"] = tempDict
+
+                # Clone the Drums track to the 2X track.
+                joule_data.GameData["trackNotesOn"].update(extract_data("trackNotesOn", "PART DRUMS", "PART DRUMS_2X"))
+                joule_data.GameData["trackNotesOff"].update(extract_data("trackNotesOff", "PART DRUMS", "PART DRUMS_2X"))
+                joule_data.GameData["trackNotesMeta"].update(extract_data("trackNotesMeta", "PART DRUMS", "PART DRUMS_2X"))
+
+                # Convert 2X Kick notes to just Kick notes in the 2X track.
+                for index in get_data_indexes("trackNotesOn", "PART DRUMS", "95"):
+                    joule_data.GameData["trackNotesOn"][ "PART DRUMS_2X", "x_kick", index ] = True
+
+                for index in get_data_indexes("trackNotesOff", "PART DRUMS", "95"):
+                    joule_data.GameData["trackNotesOff"][ "PART DRUMS_2X", "x_kick", index ] = True
+
+                # Mark that we have "found" the track for processing.
+                joule_data.TracksFound.append("PART DRUMS_2X")
+
+            else:
+                joule_print("Expert+ Kick notes found on \"PART DRUMS\". Ignoring, because PART DRUMS_2X was found.")
+            pass
+
+        pass
+    pass
+
+    
+
 pass

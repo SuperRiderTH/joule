@@ -8,6 +8,7 @@ import joule_data
 import joule_data_rockband
 import joule_data_clonehero
 import joule_data_yarg
+import joule_data_drumbeats
 
 def output_add( output_type:str, output:str, unique=False ):
 
@@ -51,6 +52,10 @@ def get_source_data():
     
     if joule_data.GameSource == "yarg":
         temp = joule_data_yarg
+
+    if joule_data.GameSource == "dbvr":
+        temp = joule_data_drumbeats
+        joule_data.MonoTrack = True
         
     return temp
 

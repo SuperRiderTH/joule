@@ -1,7 +1,7 @@
 # This file is for storing variables that will be used everywhere.
 
 MajorVersion    = 2
-MinorVersion    = 0
+MinorVersion    = 2
 PatchVersion    = 0
 
 Version         = f"{MajorVersion}.{MinorVersion}.{PatchVersion}"
@@ -36,13 +36,17 @@ GameSourceList = {
     "ps":"Phase Shift",
     "ch":"Clone Hero",
     "yarg":"Yet Another Rhythm Game",
-    "ghwtde":"Guitar Hero World Tour: Definitive Edition"
+    "ghwtde":"Guitar Hero World Tour: Definitive Edition",
+    "dbvr" : "DrumBeats VR"
 }
 
 # Band Specific variables.
 Tracks              = []
 TracksFound         = []
 TicksPerBeat        = 0
+
+# Combine all data into a singular track.
+MonoTrack           = False
 
 # Seconds is the time in seconds at each tick,
 # SecondsList is every changed whole second in ticks.

@@ -47,6 +47,8 @@ def joule_parse_midi():
                 factor = 0.45
             elif joule_data.GameSource == "ghwtde":
                 factor = 0.5
+            else:
+                factor = 0.45
             pass
             
             write_meta("TicksSustainLimit", joule_data.TicksPerBeat * factor)
@@ -59,6 +61,12 @@ def joule_parse_midi():
     for i, track in enumerate(joule_data.GameDataFile.tracks): # type: ignore
         trackTime           = 0
         unknownNotesSeen    = []
+
+        trackName = track.name
+        trackDiff = "x"
+
+        if joule_data.MonoTrack:
+            trackName = "midi_data"
 
         last_time_signature_num        = 4
         last_time_signature_denom      = 4
@@ -78,6 +86,8 @@ def joule_parse_midi():
 
         
 
+        
+
         # Process all MIDI messages.
         for msg in track:
             trackTime += msg.time
@@ -86,12 +96,20 @@ def joule_parse_midi():
             if msg.type == 'note_on' or msg.type == 'note_off':
                 currentNoteName = str(msg.note)
 
-                if track.name in notesname_instruments_array:
-                    _tempName = notesname_instruments_array[track.name]
+                if track.name in notesname_instruments_array or joule_data.GameSource == "dbvr":
+
+                    if joule_data.GameSource == "dbvr":
+                        _tempName = "DRUMS"
+                    else:
+                        _tempName = notesname_instruments_array[track.name]
 
                     # Translate the name of the note, if we have it.
                     if msg.note in notename_array[_tempName]:
                         currentNoteName = notename_array[_tempName][msg.note]
+
+                        if joule_data.GameSource == "dbvr":
+                            currentNoteName = f"{trackDiff}_{currentNoteName}"
+
                     else:
                         if msg.type == 'note_on':
                             output_add("issues_critical",f"{track.name} | Unknown MIDI Note '{str(msg.note)}' found!")
@@ -112,18 +130,19 @@ def joule_parse_midi():
                 # Check for 0 velocity notes,
                 # as Onyx and other MIDI devices use this for off notes.
                 if msg.velocity == 0:
-                    trackNotesOff[ track.name, currentNoteName, trackTime ] = True
+                    trackNotesOff[ trackName, currentNoteName, trackTime ] = True
                 else:
-                    trackNotesOn[ track.name, currentNoteName, trackTime ] = True
+                    trackNotesOn[ trackName, currentNoteName, trackTime ] = True
                 pass
                 output_add("debug_4",f"{track.name} | {currentNoteName} | {trackTime}")
 
                 # Enhanced Open checking.
                 if currentNoteName.endswith("_open")\
-                and not currentNoteName.startswith("animation_"):
+                and not currentNoteName.startswith("animation_")\
+                and not joule_data.GameSource == "dbvr":
                     try:
                         _enhanced = False
-                        if "[ENHANCED_OPENS]" in trackNotesMeta[track.name, "text", 0]:
+                        if "[ENHANCED_OPENS]" in trackNotesMeta[trackName, "text", 0]:
                             _enhanced = True
                     except:
                         pass
@@ -134,16 +153,16 @@ def joule_parse_midi():
                 pass
 
             elif msg.type == 'note_off':
-                trackNotesOff[track.name, currentNoteName, trackTime] = True
+                trackNotesOff[trackName, currentNoteName, trackTime] = True
 
             elif msg.type == 'text' or msg.type == 'lyrics':
 
                 if msg.type == 'lyrics':
                     if track.name == "PART VOCALS" or track.name.startswith("HARM"):
                         try:
-                            len( trackNotesLyrics[track.name, "lyrics", trackTime] )
+                            len( trackNotesLyrics[trackName, "lyrics", trackTime] )
                         except:
-                            trackNotesLyrics[track.name, "lyrics", trackTime] = msg.text
+                            trackNotesLyrics[trackName, "lyrics", trackTime] = msg.text
                         else:
                             output_add("issues_critical", f"{track.name} | Multiple Lyrics found at the same position.")
                         pass
@@ -156,20 +175,20 @@ def joule_parse_midi():
 
                         # Add this to the text data for the track, because this should be there instead of a lyric.
                         try:
-                            len(trackNotesMeta[track.name, "text", trackTime])
+                            len(trackNotesMeta[trackName, "text", trackTime])
                         except:
-                            trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
+                            trackNotesMeta[trackName, "text", trackTime] = [ msg.text ]
                         else:
-                            trackNotesMeta[track.name, "text", trackTime].append(msg.text)
+                            trackNotesMeta[trackName, "text", trackTime].append(msg.text)
                         pass
                     pass
                 else:
                     try:
-                        len(trackNotesMeta[track.name, "text", trackTime])
+                        len(trackNotesMeta[trackName, "text", trackTime])
                     except:
-                        trackNotesMeta[track.name, "text", trackTime] = [ msg.text ]
+                        trackNotesMeta[trackName, "text", trackTime] = [ msg.text ]
                     else:
-                        trackNotesMeta[track.name, "text", trackTime].append(msg.text)
+                        trackNotesMeta[trackName, "text", trackTime].append(msg.text)
                     pass
                 pass
 
@@ -195,36 +214,36 @@ def joule_parse_midi():
 
             elif msg.type == 'sysex':
                 try:
-                    len(trackNotesMeta[track.name,"sysex",trackTime])
+                    len(trackNotesMeta[trackName,"sysex",trackTime])
                 except:
-                    trackNotesMeta[track.name,"sysex",trackTime] = [ msg.data ]
+                    trackNotesMeta[trackName,"sysex",trackTime] = [ msg.data ]
                 else:
-                    trackNotesMeta[track.name,"sysex",trackTime].append(msg.data)
+                    trackNotesMeta[trackName,"sysex",trackTime].append(msg.data)
                 pass
 
                 # If we find tap note modifiers, we want to translate that.
                 if msg.data[5] == 4:
                     if msg.data[6] == 1:
-                        trackNotesOn[ track.name, "tap", trackTime ] = True
+                        trackNotesOn[ trackName, "tap", trackTime ] = True
                         #joule_print("Tap On")
                     if msg.data[6] == 0:
-                        trackNotesOff[ track.name, "tap", trackTime ] = True
+                        trackNotesOff[ trackName, "tap", trackTime ] = True
                         #joule_print("Tap Off")
                 else:
                     pass
                     #joule_print(f"{msg.data}")
 
             elif msg.type == 'end_of_track':
-                trackNotesMeta[track.name,"length",0] = trackTime
+                trackNotesMeta[trackName,"length",0] = trackTime
                 continue
             pass
         pass
 
         # Check to see if we found the length. If we didn't, we write it.
         try:
-            len(trackNotesMeta[track.name,"length",0])
+            len(trackNotesMeta[trackName,"length",0])
         except:
-            trackNotesMeta[track.name,"length",0] = trackTime
+            trackNotesMeta[trackName,"length",0] = trackTime
         pass
 
         output_add("debug_2",f"{track.name} Length: {trackTime}")

@@ -8,7 +8,7 @@ import configparser
 
 # Module loading.
 tempDirectory = os.path.join(sys.path[0], "modules")
-sys.path.insert(1,tempDirectory)
+sys.path.insert(1, tempDirectory)
 
 import joule_data
 
@@ -20,8 +20,8 @@ from joule_muse import *
 
 __version__ = joule_data.Version
 
-gameDataLocation    = ""
-ignoreChecks        = False
+gameDataLocation = ""
+ignoreChecks = False
 
 # Imports
 # ========================================
@@ -36,6 +36,7 @@ pass
 
 try:
     from reaper_python import *
+
     RPR_ShowConsoleMsg("")
 except ImportError:
     pass
@@ -44,18 +45,20 @@ else:
 pass
 
 
-
-
 # Functions
 # ========================================
 
-def joule_init(gameDataLocation:str, gameSource:str = False):
+
+def joule_init(gameDataLocation: str, gameSource: str = False):
     global ignoreChecks
     ignoreChecks = True
     return joule_run(gameDataLocation, gameSource)
+
+
 pass
 
-def joule_run(gameDataLocation:str, gameSource:str = False):
+
+def joule_run(gameDataLocation: str, gameSource: str = False):
 
     global ignoreChecks
 
@@ -64,11 +67,13 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     joule_data.Tracks.clear()
     joule_data.TracksFound.clear()
 
-    joule_data.GameDataOutput.update( { "info":{} } )
-    joule_data.GameDataOutput.update( { "issues_critical":{}, "issues_major":{}, "issues_minor":{} } )
-    joule_data.GameDataOutput.update( { "events":{}, "lyrics":{} } )
-    joule_data.GameDataOutput.update( { "check_results":{} } )
-    joule_data.GameDataOutput.update( { "tracks":{}, "tracks_found":{} } )
+    joule_data.GameDataOutput.update({"info": {}})
+    joule_data.GameDataOutput.update(
+        {"issues_critical": {}, "issues_major": {}, "issues_minor": {}}
+    )
+    joule_data.GameDataOutput.update({"events": {}, "lyrics": {}})
+    joule_data.GameDataOutput.update({"check_results": {}})
+    joule_data.GameDataOutput.update({"tracks": {}, "tracks_found": {}})
 
     joule_data.GameDataLocation = gameDataLocation
 
@@ -78,18 +83,22 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     config = configparser.ConfigParser()
     configLoaded = False
 
-    if os.path.isfile( os.path.join( sys.path[0], "joule_config.ini" ) ):
+    if os.path.isfile(os.path.join(sys.path[0], "joule_config.ini")):
         try:
-            config.read( os.path.join( sys.path[0], "joule_config.ini" ) )
+            config.read(os.path.join(sys.path[0], "joule_config.ini"))
             configLoaded = True
 
-            joule_data.GameSourceDefault    = str( config["Joule"]["GameSourceDefault"] )
-            joule_data.OutputNextToSource   = config["Joule"].getboolean("OutputNextToSource")
-            joule_data.OutputToOutputDir    = config["Joule"].getboolean("OutputToOutputDir")
+            joule_data.GameSourceDefault = str(config["Joule"]["GameSourceDefault"])
+            joule_data.OutputNextToSource = config["Joule"].getboolean(
+                "OutputNextToSource"
+            )
+            joule_data.OutputToOutputDir = config["Joule"].getboolean(
+                "OutputToOutputDir"
+            )
 
-            joule_data.AllowMuse            = config["Muse"].getboolean("AllowMuse")
-            
-            joule_data.Debug                = int( config["Debug"]["Level"] )
+            joule_data.AllowMuse = config["Muse"].getboolean("AllowMuse")
+
+            joule_data.Debug = int(config["Debug"]["Level"])
 
         except Exception as ex:
             joule_print(f"Configuration Error!\n\n{ex}")
@@ -98,18 +107,19 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         pass
     pass
 
-
-
     if joule_data.Debug > 0:
         for i in range(joule_data.Debug):
-            joule_data.GameDataOutput.update( { f"debug_{i+1}":{}, } )
-
+            joule_data.GameDataOutput.update(
+                {
+                    f"debug_{i+1}": {},
+                }
+            )
 
     # Set the file type that we are reading.
     # ========================================
-    
+
     _location = gameDataLocation.lower()
-    
+
     if _location.endswith(".mid") or _location.endswith(".midi"):
         joule_data.GameDataFileType = "MIDI"
     elif _location.endswith(".chart"):
@@ -126,32 +136,31 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     if gameSource == False:
         joule_data.GameSource = joule_data.GameSourceDefault
         if joule_data.GameDataFileType != "REAPER":
-            joule_print(f"No Game Source provided, assuming {joule_data.GameSourceList[joule_data.GameSourceDefault]}...")
+            joule_print(
+                f"No Game Source provided, assuming {joule_data.GameSourceList[joule_data.GameSourceDefault]}..."
+            )
     else:
         joule_data.GameSource = gameSource
     pass
 
-    
     if joule_data.GameSource in joule_data.GameSourceList:
         joule_data.GameSourceFull = joule_data.GameSourceList[joule_data.GameSource]
     else:
         joule_print("Invalid Game Source provided, Joule can not continue.")
         quit()
 
-
     joule_print(f"Game Source: {joule_data.GameSourceFull}")
-    output_add("info",f"Joule Version: {joule_data.Version}")
-    output_add("info",f"Source: {joule_data.GameSourceFull}")
-    output_add("debug_1",f"GameSource: {joule_data.GameSource}")
+    output_add("info", f"Joule Version: {joule_data.Version}")
+    output_add("info", f"Source: {joule_data.GameSourceFull}")
+    output_add("debug_1", f"GameSource: {joule_data.GameSource}")
 
     if joule_data.IncludeREAPER:
         _client = "REAPER"
     else:
         _client = "CLI"
 
-    output_add("info",f"Client: {_client}")
-    output_add("info",f"Configuration Loaded: {configLoaded}")
-
+    output_add("info", f"Client: {_client}")
+    output_add("info", f"Configuration Loaded: {configLoaded}")
 
     fileType = joule_data.GameDataFileType
 
@@ -184,7 +193,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
             joule_data.GameDataLocation = gameDataLocation
 
             # Grab the name for the output.
-            file_name_split = gameDataLocation.split('\\')
+            file_name_split = gameDataLocation.split("\\")
             file_name = file_name_split[len(file_name_split) - 1]
             file_name = file_name.split(".")[0]
 
@@ -196,14 +205,13 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         return False
     pass
 
-
     # Game specific checks
     # ========================================
 
     # Check for a song.ini, use their information if it exists.
     if joule_data.GameSource in joule_data.GameSourceHasSongINI:
         gameDataDirectory = os.path.dirname(gameDataLocation)
-        #joule_print(gameDataDirectory)
+        # joule_print(gameDataDirectory)
 
         try:
             _temp = open(gameDataDirectory + "/song.ini", mode="r")
@@ -277,19 +285,19 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                     tow_check(part)
                 pass
 
-                if part in ( "PART VOCALS", "HARM1", "HARM2", "HARM3"):
-                    
+                if part in ("PART VOCALS", "HARM1", "HARM2", "HARM3"):
+
                     if part == "PART VOCALS":
                         tow_check(part)
                     pass
-                
+
                     rbn_vocals_lyrics(part)
                     validate_spacing_vocals(part)
-                    
+
                 pass
 
-                if part in ( "PART KEYS", "Keyboard" ):
-                    
+                if part in ("PART KEYS", "Keyboard"):
+
                     rbn_hopos(part)
                     rbn_broken_chords(part)
                     validate_sustains(part)
@@ -304,13 +312,12 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
                 pass
 
             validate_instrument_phrases()
-            
+
         pass
     pass
 
     if not ignoreChecks and joule_data.AllowMuse:
         muse_run()
-
 
     for track in joule_data.Tracks:
         output_add("tracks", f"{track}")
@@ -322,7 +329,7 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
     # ========================================
 
     if joule_data.OutputNextToSource == True:
-        with open( gameDataLocation + ".json" , "w") as write:
+        with open(gameDataLocation + ".json", "w") as write:
             json.dump(joule_data.GameDataOutput, write, indent=4)
 
     # Running from REAPER will always create an output in the folder.
@@ -332,19 +339,20 @@ def joule_run(gameDataLocation:str, gameSource:str = False):
         if not os.path.exists(_tempOutputLocation):
             os.makedirs(_tempOutputLocation)
 
-        with open( os.path.join(_tempOutputLocation, "output.json") , "w") as write:
+        with open(os.path.join(_tempOutputLocation, "output.json"), "w") as write:
             json.dump(joule_data.GameDataOutput, write, indent=4)
 
     return initTest
+
+
 pass
 
 
 if __name__ == "__main__":
-    joule_print ("")
-    joule_print ("Joule Version: " + joule_data.Version)
-    joule_print ("========================================")
-    
-    
+    joule_print("")
+    joule_print("Joule Version: " + joule_data.Version)
+    joule_print("========================================")
+
     # Argument checking.
     # ========================================
 
@@ -354,7 +362,7 @@ if __name__ == "__main__":
         argLocation = "REAPER"
     else:
         if len(sys.argv) < 2 or len(sys.argv) > 3:
-            joule_print ("Invalid number of arguments!")
+            joule_print("Invalid number of arguments!")
             quit()
         pass
 
@@ -367,6 +375,5 @@ if __name__ == "__main__":
 
     joule_run(argLocation, argSource)
 
-    joule_print ("========================================")
+    joule_print("========================================")
     joule_print("Done.")
-

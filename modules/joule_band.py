@@ -10,8 +10,8 @@ from joule_parser_chart import joule_parse_chart
 from joule_parser_reaper import joule_parse_reaper
 
 
-#trackNotes[track, note, time]
-#trackNotes["PART DRUMS", "x_kick", 0] = True
+# trackNotes[track, note, time]
+# trackNotes["PART DRUMS", "x_kick", 0] = True
 trackNotesOn = {}
 trackNotesOff = {}
 trackNotesMeta = {}
@@ -20,22 +20,22 @@ trackNotesLyrics = {}
 notesname_instruments_array = {}
 notename_array = {}
 
-time_signature_measure          = []
-time_signature_time             = []
+time_signature_measure = []
+time_signature_time = []
 
-time_signature_last_position    = 0
-time_signature_last_measure     = 0
-last_time_signature_num        = 4
-last_time_signature_denom      = 4
+time_signature_last_position = 0
+time_signature_last_measure = 0
+last_time_signature_num = 4
+last_time_signature_denom = 4
 
-BrokenChordsAllowed     = False
-LowerHOPOsAllowed       = False
+BrokenChordsAllowed = False
+LowerHOPOsAllowed = False
 
 # Functions
 # ========================================
 
-def initialize_band():
 
+def initialize_band():
 
     # These variables need to be cleared for repeated runs.
     global notename_array, notesname_instruments_array
@@ -60,21 +60,20 @@ def initialize_band():
 
     if joule_data.GameDataFileType == "REAPER":
         joule_parse_reaper()
-    
-    
-    #joule_print ("========================================")
-    #joule_print(trackNotesOn)
-    #joule_print ("========================================")
-    #joule_print(trackNotesOff)
-    #joule_print ("========================================")
-    #joule_print(trackNotesLyrics)
-    #joule_print ("========================================")
-    #joule_print(trackNotesMeta)
 
-    output_add("debug_4",f"{trackNotesOn}")
-    output_add("debug_4",f"{trackNotesOff}")
-    output_add("debug_4",f"{trackNotesLyrics}")
-    output_add("debug_4",f"{trackNotesMeta}")
+    # joule_print ("========================================")
+    # joule_print(trackNotesOn)
+    # joule_print ("========================================")
+    # joule_print(trackNotesOff)
+    # joule_print ("========================================")
+    # joule_print(trackNotesLyrics)
+    # joule_print ("========================================")
+    # joule_print(trackNotesMeta)
+
+    output_add("debug_4", f"{trackNotesOn}")
+    output_add("debug_4", f"{trackNotesOff}")
+    output_add("debug_4", f"{trackNotesLyrics}")
+    output_add("debug_4", f"{trackNotesMeta}")
 
     joule_data.GameData["trackNotesOn"] = trackNotesOn
     joule_data.GameData["trackNotesOff"] = trackNotesOff
@@ -87,7 +86,7 @@ def initialize_band():
     else:
         joule_data.GameData["trackNotesMeta"].update(trackNotesMeta)
     pass
-    
+
     joule_data.GameData["tracks"] = joule_data.Tracks
     joule_data.GameData["tracksFound"] = joule_data.TracksFound
 
@@ -97,22 +96,25 @@ def initialize_band():
 
     generate_seconds()
 
-    output_add("info",f"Length: {format_seconds(get_meta('TotalLength'))}")
-    output_add("debug_1",f"TotalLength: {get_meta('TotalLength')}")
+    output_add("info", f"Length: {format_seconds(get_meta('TotalLength'))}")
+    output_add("debug_1", f"TotalLength: {get_meta('TotalLength')}")
 
     return joule_data.GameData
+
+
 pass
+
 
 def process_lyrics():
 
-    #joule_print("Extracting lyrics...")
+    # joule_print("Extracting lyrics...")
 
-    indexesVocalsOn        = get_data_indexes("trackNotesOn", 'PART VOCALS', 'phrase')
-    indexesVocalsOff       = get_data_indexes("trackNotesOff", 'PART VOCALS', 'phrase')
-    indexesVocalsLyrics    = get_data_indexes("trackNotesLyrics", 'PART VOCALS', 'lyrics')
+    indexesVocalsOn = get_data_indexes("trackNotesOn", "PART VOCALS", "phrase")
+    indexesVocalsOff = get_data_indexes("trackNotesOff", "PART VOCALS", "phrase")
+    indexesVocalsLyrics = get_data_indexes("trackNotesLyrics", "PART VOCALS", "lyrics")
 
-    phrases                = []
-    lastTime               = 0
+    phrases = []
+    lastTime = 0
 
     for index, item in enumerate(indexesVocalsOn):
 
@@ -123,15 +125,19 @@ def process_lyrics():
             lastTime = item
         pass
 
-        phraseText             = ""
+        phraseText = ""
 
         # Pull out the vocal notes inbetween the start and end of Phrases.
         if index < len(indexesVocalsOff):
-            for note in filter(lambda x:x >= item and x < indexesVocalsOff[index], indexesVocalsLyrics):
-                tempText:str = joule_data.GameData["trackNotesLyrics"]["PART VOCALS","lyrics",note]
+            for note in filter(
+                lambda x: x >= item and x < indexesVocalsOff[index], indexesVocalsLyrics
+            ):
+                tempText: str = joule_data.GameData["trackNotesLyrics"][
+                    "PART VOCALS", "lyrics", note
+                ]
 
-                tempText = tempText.replace("^","")
-                tempText = tempText.replace("#","")
+                tempText = tempText.replace("^", "")
+                tempText = tempText.replace("#", "")
 
                 if tempText == "+":
                     continue
@@ -146,7 +152,7 @@ def process_lyrics():
 
             phrases.append(phraseText.strip())
             output_add("lyrics", phraseText.strip())
-            #joule_print(phraseText.strip())
+            # joule_print(phraseText.strip())
 
     pass
 
@@ -154,17 +160,19 @@ def process_lyrics():
 
     return
 
+
 pass
+
 
 def process_events():
 
-    #joule_print("Extracting events...")
+    # joule_print("Extracting events...")
 
-    indexesEvents          = get_data_indexes("trackNotesMeta", 'meta', 'events')
-    events                 = []
+    indexesEvents = get_data_indexes("trackNotesMeta", "meta", "events")
+    events = []
 
     for i in indexesEvents:
-        _events = joule_data.GameData["trackNotesMeta"]["meta","events",i]
+        _events = joule_data.GameData["trackNotesMeta"]["meta", "events", i]
 
         for _event in _events:
             _event = _event.strip()
@@ -183,7 +191,9 @@ def process_events():
                         continue
 
                     if _tempEventCheck in joule_data_rockband.event_friendly_list:
-                        _event = joule_data_rockband.event_friendly_list[_tempEventCheck]
+                        _event = joule_data_rockband.event_friendly_list[
+                            _tempEventCheck
+                        ]
                     pass
 
                     _tempEventCheck = f"[prc_{_event}]"
@@ -192,7 +202,9 @@ def process_events():
                         continue
 
                     if _tempEventCheck in joule_data_rockband.event_friendly_list:
-                        _event = joule_data_rockband.event_friendly_list[_tempEventCheck]
+                        _event = joule_data_rockband.event_friendly_list[
+                            _tempEventCheck
+                        ]
                     pass
 
                 pass
@@ -208,7 +220,10 @@ def process_events():
     joule_data.GameData["events"] = events
 
     return
+
+
 pass
+
 
 def patch_sysex():
 
@@ -236,14 +251,14 @@ def patch_sysex():
                 inOpen = False
 
                 for diff in diff_array:
-                    notesOn     = get_data_indexes("trackNotesOn", track, diff)
-                    notesOff    = get_data_indexes("trackNotesOff", track, diff)
-                    notesAll    = sorted( set( notesOn + notesOff + notesSysEx ) )
-                
+                    notesOn = get_data_indexes("trackNotesOn", track, diff)
+                    notesOff = get_data_indexes("trackNotesOff", track, diff)
+                    notesAll = sorted(set(notesOn + notesOff + notesSysEx))
+
                 for note in notesAll:
 
                     if note in notesSysEx:
-                        data = trackNotesMeta[track,"sysex",note]
+                        data = trackNotesMeta[track, "sysex", note]
 
                         for entry in data:
                             # Open Notes are 1, Starts with 1, Ends with 0.
@@ -260,13 +275,13 @@ def patch_sysex():
                     # Modify any notes that are in-between Open markers to be Open notes.
                     for noteLane in notes_lane:
                         if inOpen:
-                            if get_note_on( track, f"{diff}_{noteLane}", note):
-                                trackNotesOn[ track, f"{diff}_{noteLane}", note ] = False
-                                trackNotesOn[ track, f"{diff}_{'open'}", note ] = True
+                            if get_note_on(track, f"{diff}_{noteLane}", note):
+                                trackNotesOn[track, f"{diff}_{noteLane}", note] = False
+                                trackNotesOn[track, f"{diff}_{'open'}", note] = True
                             pass
-                            if get_note_off( track, f"{diff}_{noteLane}", note):
-                                trackNotesOff[ track, f"{diff}_{noteLane}", note ] = False
-                                trackNotesOff[ track, f"{diff}_{'open'}", note ] = True
+                            if get_note_off(track, f"{diff}_{noteLane}", note):
+                                trackNotesOff[track, f"{diff}_{noteLane}", note] = False
+                                trackNotesOff[track, f"{diff}_{'open'}", note] = True
                             pass
                         pass
                     pass
@@ -279,4 +294,6 @@ def patch_sysex():
             pass
         pass
     pass
+
+
 pass

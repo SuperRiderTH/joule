@@ -5,18 +5,24 @@ import re
 
 from joule_band_handlers import *
 
-def section_read( line_start:int ):
+
+def section_read(line_start: int):
 
     inSection = False
     sectionData = []
 
-    sectionName = re.search(r"(?:\ *)(?:\[+)(.+)(?:\])", joule_data.GameDataFile[line_start]).groups()[0]
+    sectionName = re.search(
+        r"(?:\ *)(?:\[+)(.+)(?:\])", joule_data.GameDataFile[line_start]
+    ).groups()[0]
 
     joule_print("Found " + sectionName + "...")
     joule_data.Tracks.append(sectionName)
 
     if sectionName in joule_data.GameData["sections"]:
-        output_add("issues_critical",f"Duplicate section '{sectionName}' found! This duplicate section will not be processed.")
+        output_add(
+            "issues_critical",
+            f"Duplicate section '{sectionName}' found! This duplicate section will not be processed.",
+        )
         return
 
     lineIndex = line_start
@@ -25,7 +31,7 @@ def section_read( line_start:int ):
 
         line = joule_data.GameDataFile[i]
 
-        if line.strip().startswith("{") or line.strip().startswith('['):
+        if line.strip().startswith("{") or line.strip().startswith("["):
 
             if inSection == True:
                 joule_print(f"Error! Section '{sectionName}' ends early at line {i+1}!")
@@ -38,22 +44,25 @@ def section_read( line_start:int ):
             pass
         elif line.strip().startswith("}"):
             joule_data.GameData["sections"][sectionName] = sectionData
-            #joule_print(sectionData)
+            # joule_print(sectionData)
             return
         else:
             sectionData.append(line.strip())
         pass
     pass
+
+
 pass
+
 
 # Chart Processing
 # ========================================
 def joule_parse_chart():
 
-    trackNotesOn        = joule_band.trackNotesOn
-    trackNotesOff       = joule_band.trackNotesOff
-    trackNotesLyrics    = joule_band.trackNotesLyrics
-    trackNotesMeta      = joule_band.trackNotesMeta
+    trackNotesOn = joule_band.trackNotesOn
+    trackNotesOff = joule_band.trackNotesOff
+    trackNotesLyrics = joule_band.trackNotesLyrics
+    trackNotesMeta = joule_band.trackNotesMeta
 
     base = get_source_data()
 
@@ -68,7 +77,7 @@ def joule_parse_chart():
     for index, line in enumerate(joule_data.GameDataFile):
         # We don't want zero width spaces here. Get rid of them.
         if chr(65279) in line:
-            joule_data.GameDataFile[index] = line.replace(chr(65279), '')
+            joule_data.GameDataFile[index] = line.replace(chr(65279), "")
             line = joule_data.GameDataFile[index]
 
         # If we find a section, read the info.
@@ -110,11 +119,11 @@ def joule_parse_chart():
             factor = 0.5
 
         write_meta("TicksSustainLimit", joule_data.TicksPerBeat * factor)
-        
+
     pass
 
-    output_add("debug_1",f"ticksPerBeat: {joule_data.TicksPerBeat}")
-    output_add("debug_1",f"TicksSustainLimit: {get_meta('TicksSustainLimit')}")
+    output_add("debug_1", f"ticksPerBeat: {joule_data.TicksPerBeat}")
+    output_add("debug_1", f"TicksSustainLimit: {get_meta('TicksSustainLimit')}")
 
     # Events parsing
     _songData = joule_data.GameData["sections"]["Events"]
@@ -122,24 +131,24 @@ def joule_parse_chart():
     for line in _songData:
         lineGroups = line_groups(line)
 
-        lineKey     = lineGroups[0]
-        lineValue   = lineGroups[1]
+        lineKey = lineGroups[0]
+        lineValue = lineGroups[1]
 
         if lineValue.startswith("E"):
             _tempLine = lineValue.lstrip("E")
             _tempLine = _tempLine.strip()
-            _tempLine = _tempLine.strip("\"")
+            _tempLine = _tempLine.strip('"')
 
             if _tempLine.startswith("section"):
                 _tempLine = _tempLine.lstrip("section")
                 _tempLine = _tempLine.strip()
-                
+
                 try:
-                    len(trackNotesMeta["meta","events",int(lineKey)])
+                    len(trackNotesMeta["meta", "events", int(lineKey)])
                 except:
-                    trackNotesMeta["meta","events",int(lineKey)] = [ _tempLine ]
+                    trackNotesMeta["meta", "events", int(lineKey)] = [_tempLine]
                 else:
-                    trackNotesMeta["meta","events",int(lineKey)].append(_tempLine)
+                    trackNotesMeta["meta", "events", int(lineKey)].append(_tempLine)
                 pass
 
             elif _tempLine.startswith("lyric"):
@@ -148,7 +157,7 @@ def joule_parse_chart():
 
                 # We are creating artificial notes for vocals to display lyrics.
                 # .chart doesn't support Vocals, so we are okay to do this.
-                trackNotesLyrics["PART VOCALS","lyrics",int(lineKey)] = _tempLine
+                trackNotesLyrics["PART VOCALS", "lyrics", int(lineKey)] = _tempLine
                 trackNotesOn["PART VOCALS", "note_c1", int(lineKey)] = True
                 trackNotesOff["PART VOCALS", "note_c1", int(lineKey) + 1] = True
 
@@ -160,15 +169,18 @@ def joule_parse_chart():
 
             else:
                 try:
-                    len(trackNotesMeta["meta","events",int(lineKey)])
+                    len(trackNotesMeta["meta", "events", int(lineKey)])
                 except:
-                    trackNotesMeta["meta","events",int(lineKey)] = [ _tempLine ]
+                    trackNotesMeta["meta", "events", int(lineKey)] = [_tempLine]
                 else:
-                    trackNotesMeta["meta","events",int(lineKey)].append(_tempLine)
+                    trackNotesMeta["meta", "events", int(lineKey)].append(_tempLine)
                 pass
             pass
         else:
-            output_add("issues_critical", f"Events | {lineKey} | Unknown Event '{lineValue}' found!")
+            output_add(
+                "issues_critical",
+                f"Events | {lineKey} | Unknown Event '{lineValue}' found!",
+            )
         pass
     pass
 
@@ -176,7 +188,7 @@ def joule_parse_chart():
     for i, track in enumerate(joule_data.GameData["sections"]):
 
         # We need both the full name, and single letter for the difficulties.
-        diff_keys   = list(diff_array.keys())
+        diff_keys = list(diff_array.keys())
         diff_values = list(diff_array.values())
 
         part_name = ""
@@ -184,22 +196,27 @@ def joule_parse_chart():
         for line in joule_data.GameData["sections"][track]:
             lineGroups = line_groups(line)
 
-            lineKey     = lineGroups[0]
-            lineValue   = lineGroups[1]
+            lineKey = lineGroups[0]
+            lineValue = lineGroups[1]
 
             if track == "SyncTrack":
                 _tempData = lineValue.split(" ")
 
-                noteType    = _tempData[0]
-                noteValue   = _tempData[1]
+                noteType = _tempData[0]
+                noteValue = _tempData[1]
 
                 if noteType == "A":
                     # Tempo anchors are not necessary for gameplay, and is just used for chart editing.
-                    output_add("debug_1",f"{track} | {lineKey} | Tempo position anchors are not supported.")
+                    output_add(
+                        "debug_1",
+                        f"{track} | {lineKey} | Tempo position anchors are not supported.",
+                    )
 
                 elif noteType == "B":
-                    trackNotesMeta["meta","tempo",int(lineKey)] = bpm2tempo((float(noteValue) / 1000))
-                    
+                    trackNotesMeta["meta", "tempo", int(lineKey)] = bpm2tempo(
+                        (float(noteValue) / 1000)
+                    )
+
                 elif noteType == "TS":
                     num = int(noteValue)
 
@@ -211,10 +228,13 @@ def joule_parse_chart():
                     pass
 
                     # Time Signatures in .chart use an exponent for the denominator.
-                    process_time_signature( int(lineKey), num, (2 ** den) )
+                    process_time_signature(int(lineKey), num, (2**den))
 
                 else:
-                    output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
+                    output_add(
+                        "issues_critical",
+                        f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!",
+                    )
                 pass
 
             # We start reading with difficulties, because that is how they start.
@@ -235,29 +255,31 @@ def joule_parse_chart():
 
                         _tempData = lineValue.split(" ")
 
-                        noteType    = _tempData[0]
-                        noteValue   = _tempData[1]
+                        noteType = _tempData[0]
+                        noteValue = _tempData[1]
 
                         # Note and Special Phrase checking
                         if noteType == "N" or noteType == "S":
 
                             if len(_tempData) != 3:
-                                output_add("issues_critical",f"{track} | {lineKey} | Invalid Note found!")
+                                output_add(
+                                    "issues_critical",
+                                    f"{track} | {lineKey} | Invalid Note found!",
+                                )
                                 continue
 
-                            noteValue   = int(noteValue)
-                            noteLength  = int(_tempData[2])
+                            noteValue = int(noteValue)
+                            noteLength = int(_tempData[2])
 
                             # We don't want 0 length notes here,
                             # overriding it to 1 should be fine.
-                            noteLength  = max(noteLength, 1)
+                            noteLength = max(noteLength, 1)
 
                             # Get the note names depending on the note type.
                             if noteType == "N":
                                 notenames = notename_chart_notes
                             if noteType == "S":
                                 notenames = notename_chart_phrase
-
 
                             if noteValue in notenames[_tempName]:
 
@@ -269,14 +291,19 @@ def joule_parse_chart():
                                 pass
 
                                 trackNotesOn[part_name, noteName, int(lineKey)] = True
-                                trackNotesOff[part_name, noteName, int(lineKey) + noteLength] = True
+                                trackNotesOff[
+                                    part_name, noteName, int(lineKey) + noteLength
+                                ] = True
 
                                 length = int(lineKey) + noteLength
                                 trackNotesMeta[part_name, "length", 0] = length
 
                             else:
                                 # Yes, this error outputs in tick time.
-                                output_add("issues_critical",f"{track} | {lineKey} | Unknown Note '{str(noteValue)}' found!")
+                                output_add(
+                                    "issues_critical",
+                                    f"{track} | {lineKey} | Unknown Note '{str(noteValue)}' found!",
+                                )
                             pass
 
                         # Events in instruments
@@ -293,16 +320,23 @@ def joule_parse_chart():
 
                             else:
                                 try:
-                                    len(trackNotesMeta[part_name,"text",int(lineKey)])
+                                    len(trackNotesMeta[part_name, "text", int(lineKey)])
                                 except:
-                                    trackNotesMeta[part_name,"text",int(lineKey)] = [ noteValue ]
+                                    trackNotesMeta[part_name, "text", int(lineKey)] = [
+                                        noteValue
+                                    ]
                                 else:
-                                    trackNotesMeta[part_name,"text",int(lineKey)].append(noteValue)
+                                    trackNotesMeta[
+                                        part_name, "text", int(lineKey)
+                                    ].append(noteValue)
                                 pass
                             pass
 
                         else:
-                            output_add("issues_critical",f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!")
+                            output_add(
+                                "issues_critical",
+                                f"{track} | {lineKey} | Unknown Note Type '{str(noteType)}' found!",
+                            )
                         pass
                     pass
                 pass
@@ -312,7 +346,7 @@ def joule_parse_chart():
 
     for part_name in joule_data.TracksFound:
         length = trackNotesMeta[part_name, "length", 0]
-        output_add("debug_2",f"{part_name} Length: {length}")
+        output_add("debug_2", f"{part_name} Length: {length}")
 
         if get_meta("TotalLength") != None:
             if get_meta("TotalLength") < length:
@@ -324,9 +358,10 @@ def joule_parse_chart():
 
     pass
 
-    joule_band.trackNotesOn        = trackNotesOn
-    joule_band.trackNotesOff       = trackNotesOff
-    joule_band.trackNotesLyrics    = trackNotesLyrics
-    joule_band.trackNotesMeta      = trackNotesMeta
+    joule_band.trackNotesOn = trackNotesOn
+    joule_band.trackNotesOff = trackNotesOff
+    joule_band.trackNotesLyrics = trackNotesLyrics
+    joule_band.trackNotesMeta = trackNotesMeta
+
 
 pass

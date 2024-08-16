@@ -11,10 +11,11 @@ import joule_data_rockband
 import joule_data_clonehero
 import joule_data_yarg
 
-def output_add( output_type:str, output:str, unique=False ):
+
+def output_add(output_type: str, output: str, unique=False):
 
     if output_type.startswith("debug"):
-        if int(output_type.split('_')[1]) > joule_data.Debug:
+        if int(output_type.split("_")[1]) > joule_data.Debug:
             return
 
     if unique:
@@ -25,13 +26,15 @@ def output_add( output_type:str, output:str, unique=False ):
     _index = len(joule_data.GameDataOutput[output_type])
     joule_data.GameDataOutput[output_type][_index] = output
 
+
 pass
 
 # We have a custom print function, because we need to change where we are outputting to.
 try:
     from reaper_python import RPR_ShowConsoleMsg
 except ImportError:
-    def joule_print(string:str):
+
+    def joule_print(string: str):
         print(string)
 
         if joule_data.OutputDebugFile == True:
@@ -44,7 +47,8 @@ except ImportError:
 
     pass
 else:
-    def joule_print(string:str):
+
+    def joule_print(string: str):
         RPR_ShowConsoleMsg(str(string) + "\n")
 
         if joule_data.OutputDebugFile == True:
@@ -58,69 +62,77 @@ else:
     pass
 pass
 
+
 def get_source_data():
-    
+
     if joule_data.GameSource in joule_data.GameSourceRBLike:
         temp = joule_data_rockband
-    
+
     if joule_data.GameSource == "ch":
         temp = joule_data_clonehero
 
     if joule_data.GameSource == "ghwtde":
         temp = joule_data_clonehero
-    
+
     if joule_data.GameSource == "yarg":
         temp = joule_data_yarg
-        
+
     return temp
+
 
 pass
 
-def get_meta(track:str, key:int = 0):
-# get_meta("time_signature_num", 0)
+
+def get_meta(track: str, key: int = 0):
+    # get_meta("time_signature_num", 0)
 
     try:
-        _tempData = joule_data.GameData["trackNotesMeta"]["meta",track,key]
+        _tempData = joule_data.GameData["trackNotesMeta"]["meta", track, key]
     except KeyError:
         return None
     else:
         return _tempData
     pass
 
+
 pass
 
-def write_meta(track:str, data):
-# This function writes data to the meta section of the Meta dictionary.
+
+def write_meta(track: str, data):
+    # This function writes data to the meta section of the Meta dictionary.
 
     if not "trackNotesMeta" in joule_data.GameData.keys():
         joule_data.GameData["trackNotesMeta"] = {}
 
-    joule_data.GameData["trackNotesMeta"]["meta",track,0] = data
+    joule_data.GameData["trackNotesMeta"]["meta", track, 0] = data
+
 
 pass
 
-def write_meta_key(track:str, key:int, data):
-# This function writes data to the meta section of the Meta dictionary.
+
+def write_meta_key(track: str, key: int, data):
+    # This function writes data to the meta section of the Meta dictionary.
 
     if not "trackNotesMeta" in joule_data.GameData.keys():
         joule_data.GameData["trackNotesMeta"] = {}
 
-    joule_data.GameData["trackNotesMeta"]["meta",track,key] = data
+    joule_data.GameData["trackNotesMeta"]["meta", track, key] = data
+
 
 pass
 
 
-def get_data_indexes(type:str, track:str, key:str, strict:bool = False):
+def get_data_indexes(type: str, track: str, key: str, strict: bool = False):
 
-# This function returns a list of all the valid indexes of the data type you
-# are searching for.
+    # This function returns a list of all the valid indexes of the data type you
+    # are searching for.
 
-# get_data_indexes("trackNotesOn", 'PART DRUMS', 'x_kick')
-# get_data_indexes("trackNotesOn", 'PART DRUMS', 'x_kick', True)
+    # get_data_indexes("trackNotesOn", 'PART DRUMS', 'x_kick')
+    # get_data_indexes("trackNotesOn", 'PART DRUMS', 'x_kick', True)
 
     _tempData = []
 
-    for _key,_val, _ind in joule_data.GameData[type].keys():
+    for _key, _val, _ind in joule_data.GameData[type].keys():
         if strict and _key == track and _val == key:
             _tempData.append(_ind)
         elif _key == track and _val.startswith(key):
@@ -130,10 +142,12 @@ def get_data_indexes(type:str, track:str, key:str, strict:bool = False):
 
     return _tempData
 
+
 pass
 
-def get_data_indexes_range(type:str, track:str, key:str, time1:int, time2:int):
-    
+
+def get_data_indexes_range(type: str, track: str, key: str, time1: int, time2: int):
+
     _tempData = []
     _tempIndexes = get_data_indexes(type, track, key)
 
@@ -144,12 +158,15 @@ def get_data_indexes_range(type:str, track:str, key:str, time1:int, time2:int):
     pass
 
     return _tempData
+
+
 pass
 
-def extract_data(type:str, track:str, rename:str = ""):
 
-# This function extracts the whole track to a separate dictionary,
-# optionally renames the track if provided.
+def extract_data(type: str, track: str, rename: str = ""):
+
+    # This function extracts the whole track to a separate dictionary,
+    # optionally renames the track if provided.
 
     if rename != "":
         _trackName = rename
@@ -162,21 +179,22 @@ def extract_data(type:str, track:str, rename:str = ""):
     for entry in joule_data.GameData[type]:
         if entry[0] == track:
 
-            if joule_data.GameData[type][entry[0],entry[1],entry[2]] == True:
+            if joule_data.GameData[type][entry[0], entry[1], entry[2]] == True:
                 _result = True
             else:
                 _result = False
 
-            _tempData[_trackName,entry[1],entry[2]] = _result
+            _tempData[_trackName, entry[1], entry[2]] = _result
         pass
     pass
- 
+
     return _tempData
+
 
 pass
 
 
-def line_groups(inputStr:str):
+def line_groups(inputStr: str):
 
     test = re.search(r"(?:\ *)([^\s=]+)(?:\s*)(?:={1})(?:\ *)(.+)", inputStr)
 
@@ -187,7 +205,9 @@ def line_groups(inputStr:str):
         return None
     pass
 
+
 pass
+
 
 def cleaner_decimal(input):
 
@@ -198,8 +218,10 @@ def cleaner_decimal(input):
     else:
         return _input
     pass
-    
+
+
 pass
+
 
 def decode_reaper_text(input):
 
@@ -222,17 +244,23 @@ def decode_reaper_text(input):
             textData = str.encode(output)
             textType = 1
         except:
-            output_add("debug_1",f"Joule Error | decode_reaper_text | Failed b64 decode: {output}")
+            output_add(
+                "debug_1",
+                f"Joule Error | decode_reaper_text | Failed b64 decode: {output}",
+            )
         pass
     pass
 
     # Do not decode Sysex events.
     if textType != 80:
         try:
-            textData = codecs.decode(textData, 'utf-8')
+            textData = codecs.decode(textData, "utf-8")
             textData = str(textData)
         except:
-            output_add("debug_1",f"Joule Error | decode_reaper_text | Failed utf-8 decode: {output}, {[textType, textData]}")
+            output_add(
+                "debug_1",
+                f"Joule Error | decode_reaper_text | Failed utf-8 decode: {output}, {[textType, textData]}",
+            )
         pass
     else:
 
@@ -250,7 +278,8 @@ def decode_reaper_text(input):
         pass
 
     pass
-    
 
     return [textType, textData]
+
+
 pass

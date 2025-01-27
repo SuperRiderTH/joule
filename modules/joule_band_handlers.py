@@ -226,11 +226,11 @@ def note_delete(part: str, note: str, time: int):
     pass
 
     try:
-        if joule_data.GameData["trackNotesOn"][part, note, time]:
+        if get_note_on(part, note, time):
             for index in notesOff:
                 if index > time:
-                    if joule_data.GameData["trackNotesOff"][part, note, index]:
-                        joule_data.GameData["trackNotesOn"][part, note, index] = False
+                    if get_note_off(part, note, index):
+                        joule_data.GameData["trackNotesOn"][part, note, time] = False
                         joule_data.GameData["trackNotesOff"][part, note, index] = False
                         return True
                     else:

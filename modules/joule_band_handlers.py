@@ -215,7 +215,7 @@ def get_note_off(part: str, note: str, time: int):
 pass
 
 
-def note_delete(part: str, note: str, time: int):
+def note_delete(part: str, note: str, time: int, hard_delete=False):
 
     notesOn = get_data_indexes("trackNotesOn", part, note)
     notesOff = get_data_indexes("trackNotesOff", part, note)
@@ -230,8 +230,12 @@ def note_delete(part: str, note: str, time: int):
             for index in notesOff:
                 if index > time:
                     if get_note_off(part, note, index):
-                        joule_data.GameData["trackNotesOn"][part, note, time] = False
-                        joule_data.GameData["trackNotesOff"][part, note, index] = False
+                        if hard_delete:
+                            del joule_data.GameData["trackNotesOn"][part, note, time]
+                            del joule_data.GameData["trackNotesOff"][part, note, index]
+                        else:
+                            joule_data.GameData["trackNotesOn"][part, note, time] = False
+                            joule_data.GameData["trackNotesOff"][part, note, index] = False
                         return True
                     else:
                         return False

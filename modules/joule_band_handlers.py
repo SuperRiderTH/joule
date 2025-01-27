@@ -213,3 +213,37 @@ def get_note_off(part: str, note: str, time: int):
 
 
 pass
+
+
+def note_delete(part: str, note: str, time: int):
+
+    notesOn = get_data_indexes("trackNotesOn", part, note)
+    notesOff = get_data_indexes("trackNotesOff", part, note)
+
+    if len(notesOn) != len(notesOff):
+        joule_print(f"Error! Uneven amount of On and Off {note} notes in {part}!")
+        return False
+    pass
+
+    try:
+        if joule_data.GameData["trackNotesOn"][part, note, time]:
+            for index in notesOff:
+                if index > time:
+                    if joule_data.GameData["trackNotesOff"][part, note, index]:
+                        joule_data.GameData["trackNotesOn"][part, note, index] = False
+                        joule_data.GameData["trackNotesOff"][part, note, index] = False
+                        return True
+                    else:
+                        return False
+                    pass
+                pass
+            pass
+        else:
+            return False
+        pass
+    except KeyError:
+        return False
+    pass
+
+
+pass

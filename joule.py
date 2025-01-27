@@ -170,7 +170,7 @@ def joule_run(gameDataLocation: str, gameSource: str = False):
         if fileType == "MIDI":
             if not joule_data.IncludeMIDI:
                 joule_print("Mido is not loaded, unable to proceed.")
-                return
+                return False
             else:
                 joule_data.GameDataFile = MidiFile(gameDataLocation, clip=True)
             pass
@@ -183,7 +183,7 @@ def joule_run(gameDataLocation: str, gameSource: str = False):
 
             if not joule_data.IncludeREAPER:
                 joule_print("REAPER API failed to load, aborting...")
-                return
+                return False
 
             # Get REAPER metadata.
             rpr_enum = RPR_EnumProjects(-1, "", 512)

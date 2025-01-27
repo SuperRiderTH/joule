@@ -141,6 +141,7 @@ def joule_parse_midi():
                     trackNotesOff[trackName, currentNoteName, trackTime] = True
                 else:
                     trackNotesOn[trackName, currentNoteName, trackTime] = True
+                    trackNotesMeta[trackName, "velocity", trackTime] = msg.velocity
                 pass
                 output_add("debug_4", f"{track.name} | {currentNoteName} | {trackTime}")
 

@@ -11,7 +11,7 @@ import datetime
 
 # This function is basically copied from my implementation in CARV,
 # with some minor modifications to function in this context.
-def format_location(note_location: int, display_time=False):
+def format_location(note_location: int, display_time=False, floor_denom=True):
 
     time_signature_locations = get_data_indexes(
         "trackNotesMeta", "meta", "time_signature_num"
@@ -46,16 +46,14 @@ def format_location(note_location: int, display_time=False):
             )
 
             time_1 = math.floor(time_1)
-            time_2 = math.floor(time_2)
+
+            if floor_denom:
+                time_2 = math.floor(time_2)
 
             time_string = str(time_1 + 1) + "." + str(time_2 + 1)
 
             if display_time == True:
-                time_string = (
-                    time_string
-                    + str(time_2 + 1)
-                    + f" | {format_seconds(note_location)}"
-                )
+                time_string = f"{time_string} | {format_seconds(note_location)}"
 
             return time_string
 
@@ -234,8 +232,12 @@ def note_delete(part: str, note: str, time: int, hard_delete=False):
                             del joule_data.GameData["trackNotesOn"][part, note, time]
                             del joule_data.GameData["trackNotesOff"][part, note, index]
                         else:
-                            joule_data.GameData["trackNotesOn"][part, note, time] = False
-                            joule_data.GameData["trackNotesOff"][part, note, index] = False
+                            joule_data.GameData["trackNotesOn"][
+                                part, note, time
+                            ] = False
+                            joule_data.GameData["trackNotesOff"][
+                                part, note, index
+                            ] = False
                         return True
                     else:
                         return False

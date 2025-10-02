@@ -33,13 +33,15 @@ try:
     from reaper_python import RPR_ShowConsoleMsg
 except ImportError:
 
-    def joule_print(string: str):
+    def joule_print(string):
+        str(string)
         print(string)
 
     pass
 else:
 
-    def joule_print(string: str):
+    def joule_print(string):
+        str(string)
         RPR_ShowConsoleMsg(str(string) + "\n")
 
     pass
@@ -64,7 +66,7 @@ def get_source_data():
         temp = joule_data_drumbeats
         joule_data.MonoTrack = True
 
-    return temp
+    return temp # type: ignore
 
 
 pass
@@ -182,6 +184,8 @@ pass
 def decode_reaper_text(input):
 
     output = input
+    textType = None
+    textData = None
 
     try:
         output = base64.b64decode(output)
@@ -197,7 +201,7 @@ def decode_reaper_text(input):
 
     except:
         try:
-            textData = str.encode(output)
+            textData = str.encode(output) # type: ignore
             textType = 1
         except:
             output_add(
@@ -207,10 +211,17 @@ def decode_reaper_text(input):
         pass
     pass
 
+    if textType == None:
+        output_add(
+                "debug_1",
+                f"Joule Error | decode_reaper_text | Failed REAPER text type: {output}",
+            )
+        return False
+
     # Do not decode Sysex events.
     if textType != 80:
         try:
-            textData = codecs.decode(textData, "utf-8")
+            textData = codecs.decode(textData, "utf-8") # type: ignore
             textData = str(textData)
         except:
             output_add(
@@ -221,15 +232,15 @@ def decode_reaper_text(input):
     else:
 
         # Format the Sysex event in the same way as the MIDI reader.
-        if textData[0] == 240:
-            textData.pop(0)
-            textData.pop()
+        if textData[0] == 240: # type: ignore
+            textData.pop(0) # type: ignore
+            textData.pop() # type: ignore
         pass
 
         # We need to clamp these numbers to match what Mido reads.
-        for index, item in enumerate(textData):
+        for index, item in enumerate(textData): # type: ignore
             if item > 127:
-                textData[index] = 127
+                textData[index] = 127 # type: ignore
             pass
         pass
 

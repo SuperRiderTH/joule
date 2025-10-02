@@ -35,14 +35,14 @@ def format_location(note_location: int, display_time=False, floor_denom=True):
                 "time_signature_denom", joule_band.time_signature_time[location_index]
             )
 
-            divisor_factor = location_denom / 4
+            divisor_factor = location_denom / 4 # type: ignore
             divisor = (joule_data.TicksPerBeat / divisor_factor) * location_num
 
             time_1 = (location_offset / divisor) + joule_band.time_signature_measure[
                 location_index
             ]
             time_2 = (location_offset % divisor) / (
-                joule_data.TicksPerBeat / (location_denom / 4)
+                joule_data.TicksPerBeat / (location_denom / 4) # type: ignore
             )
 
             time_1 = math.floor(time_1)
@@ -77,7 +77,7 @@ def generate_seconds():
     last_second = -1
     seconds_list = []
 
-    for test in range(get_meta("TotalLength") + 1):
+    for test in range(get_meta("TotalLength") + 1): # type: ignore
 
         tempo_check = get_meta("tempo", test)
 
@@ -253,3 +253,26 @@ def note_delete(part: str, note: str, time: int, hard_delete=False):
 
 
 pass
+
+def get_current_tempo(time: int):
+    indexes = get_data_indexes("trackNotesMeta", "meta", "tempo")
+
+    tempTempo = 0
+
+    #joule_print(f"indexes - {indexes}")
+
+    for index in indexes:
+        #joule_print(f"{time} - {index}")
+        if index < time:
+            #joule_print(f"tempo - {tempTempo}")
+            tempTempo = get_meta("tempo", index)
+        else:
+            break
+        pass
+    pass
+
+    #joule_print(f"Found tempo - {tempTempo}")
+    return tempTempo
+
+pass
+
